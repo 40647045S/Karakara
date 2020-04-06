@@ -21,7 +21,12 @@ A neural network library
   * -[x] SGD
   * -[x] Momentum
   * -[x] Adam
+* 特殊功能
+  * -[x] GPU支援
+  * -[x] 半精度浮點數支援
+  * -[ ] 多GPU支援
+  * -[ ] 儲存模型
 
 ## 使用範例
-mnist_classification.py : Mnist手寫數字分類
-mnist_deep_gan.py : 基於Deep GAN的Mnist手寫數字生成
+mnist_classification.py : Mnist手寫數字分類  
+mnist_deep_gan.py : 基於Deep GAN的Mnist手寫數字生成  
