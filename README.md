@@ -2,8 +2,8 @@
 A neural network library
 
 ## 說明
-這是NTNU OOAD Spring 2020 Project的一部分
-是一個手動微分的神經網路函式庫
+這是NTNU OOAD Spring 2020 Project的一部分  
+是一個手動微分的神經網路函式庫  
 
 ## 功能
 打勾代表已完成
