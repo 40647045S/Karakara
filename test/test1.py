@@ -1,5 +1,10 @@
+import os
+import sys
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, '..')
+
 from karakara import config
-# config.GPU = True
+config.GPU = True
 import karakara.backend as K
 # K.set_floatx('float16')
 # K.set_epsilon(1e-4)
@@ -9,11 +14,11 @@ from karakara.layers import Dense, Dropout
 from karakara.activations import Sigmoid, LeakyReLU, Softmax
 from karakara.optimizers import SGD, Momentom, Adam
 
-from utils import plot_history, make_mnist_data
+from utils import make_mnist_data, plot_history, make_fasion_mnist_data, make_cifar10_data
 
 input_shape = 784
 n_classes = 10
-epochs = 2
+epochs = 10
 batch_size = 128
 
 

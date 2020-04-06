@@ -5,7 +5,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 from karakara import config
-config.GPU = True
+# config.GPU = True
 import karakara.backend as K
 K.set_random_seed(1988)
 # K.set_floatx('float16')
@@ -15,7 +15,7 @@ from karakara.layers import Dense, Dropout
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Tanh
 from karakara.optimizers import SGD, Momentom, Adam
 
-from utils import make_mnist_data, make_fasion_mnist_data
+from utils import make_mnist_data
 
 np.random.seed(1988)
 
@@ -138,7 +138,7 @@ def train(data, generator, discriminator, gan_model, epochs=1, batchSize=128, pl
 
 
 def main():
-    (X_train, _), (_, _), (X_test, _) = make_fasion_mnist_data(valid_ratio=0)
+    (X_train, _), (_, _), (X_test, _) = make_mnist_data(valid_ratio=0)
     X_train = np.concatenate([X_train, X_test])
 
     adam = Adam(lr=0.0002, beta_1=0.5)
