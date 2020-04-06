@@ -18,7 +18,7 @@ from utils import make_mnist_data, plot_history, make_fasion_mnist_data, make_ci
 
 input_shape = 784
 n_classes = 10
-epochs = 10
+epochs = 5
 batch_size = 128
 
 
