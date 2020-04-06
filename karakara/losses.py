@@ -1,0 +1,108 @@
+from .backend import np, epsilon
+from .engine.base_layer import Layer
+from .utils.math_utils import categorical_crossentropy_error
+
+
+class BaseLossLayer(Layer):
+    def __init__(self):
+        super().__init__(trainable=False)
+
+    def build(self, input_shape):
+        self.output_shape = 1
+
+    def compute_output_shape(self):
+        return 1
+
+
+class CategoricalCrossEntropy(BaseLossLayer):
+
+    def __init__(self, epsilon=epsilon()):
+        super().__init__()
+        self.pred = None
+        self.label = None
+        self.loss = None
+        self.epsilon = epsilon
+        self.output_shape = None
+
+    def call(self, inputs, labels):
+        self.pred = inputs
+        self.label = labels
+        self.loss = categorical_crossentropy_error(self.pred, self.label)
+
+        return self.loss
+
+    def backward(self, dout=1):
+        batch_size = self.label.shape[0]
+        denominator = np.maximum(self.pred - self.pred ** 2, self.epsilon)
+        dx = (self.pred - self.label) / denominator
+        dx = dx / batch_size
+
+        return dx
+
+
+class MeanSquareError(BaseLossLayer):
+
+    def __init__(self, epsilon=epsilon()):
+        super().__init__()
+        self.pred = None
+        self.label = None
+        self.loss = None
+        self.output_shape = None
+
+    def call(self, inputs, labels):
+        self.pred = inputs
+        self.label = labels.reshape(-1, 1)
+        batch_size = self.label.shape[0]
+        self.loss = (self.pred - self.label) ** 2 / 2
+
+        return np.sum(self.loss) / batch_size
+
+    def backward(self, dout=1):
+        batch_size = self.label.shape[0]
+        dx = (self.pred - self.label) / batch_size
+
+        return dx
+
+
+class BinaryCrossEntropy(BaseLossLayer):
+
+    def __init__(self, epsilon=epsilon()):
+        super().__init__()
+        self.pred = None
+        self.epsilon = epsilon
+        self.label = None
+        self.loss = None
+        self.output_shape = None
+
+    def call(self, inputs, labels):
+        self.pred = inputs
+        self.label = labels.reshape(-1, 1)
+        batch_size = self.label.shape[0]
+        self.loss = -(self.label * np.log(self.pred) +
+                      (1 - self.label) * np.log(1 - self.pred + self.epsilon))
+
+        return np.sum(self.loss) / batch_size
+
+    def backward(self, dout=1):
+        batch_size = self.label.shape[0]
+        dx = - (np.divide(self.label, self.pred + self.epsilon) -
+                np.divide(1 - self.label, 1 - self.pred + self.epsilon))
+        dx = dx / batch_size
+
+        return dx
+
+
+loss_table = {
+    'categorical_crossentropy': CategoricalCrossEntropy,
+    'mse': MeanSquareError,
+    'binary_crossentropy': BinaryCrossEntropy,
+}
+
+
+def get(identifier):
+    if isinstance(identifier, str):
+        return loss_table[identifier.lower()]()
+    elif isinstance(identifier, BaseLossLayer):
+        return identifier
+    else:
+        raise ValueError(f'Unknow loss {identifier}')
