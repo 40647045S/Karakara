@@ -17,6 +17,7 @@ class naming_system:
                 name_count = cls.name_dict[class_name]
             else:
                 break
+        cls.used_name.add(new_name)
         return new_name
 
     @classmethod

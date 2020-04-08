@@ -1,7 +1,7 @@
 import os
 import sys
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
-sys.path.insert(0, '..')
+sys.path.insert(0, os.path.dirname(
+    os.path.dirname(os.path.realpath(__file__))))
 
 from karakara import config
 config.GPU = True
@@ -10,7 +10,7 @@ import karakara.backend as K
 # K.set_epsilon(1e-4)
 
 from karakara.models import Sequential
-from karakara.layers import Dense, Dropout
+from karakara.layers import Dense, Dropout, Add, Separate, Same
 from karakara.activations import Sigmoid, LeakyReLU, Softmax
 from karakara.optimizers import SGD, Momentom, Adam
 
@@ -22,20 +22,23 @@ epochs = 5
 batch_size = 128
 
 
+def residual_bloak(input_shape):
+    r_net = Sequential()
+    r_net.add(Dense(input_shape[0], input_shape=input_shape))
+    r_net.add(LeakyReLU(0.2))
+    r_net.add(Dense(input_shape[0]))
+    r_net.add(LeakyReLU(0.2))
+
+    return [Same(), r_net]
+
+
 def make_model():
     model = Sequential()
     model.add(Dense(1024, input_shape=input_shape))
     model.add(LeakyReLU(0.2))
-    model.add(Dropout(0.3))
-    model.add(Dense(512))
-    model.add(LeakyReLU(0.2))
-    model.add(Dropout(0.3))
-    model.add(Dense(256))
-    model.add(LeakyReLU(0.2))
-    model.add(Dropout(0.3))
-    model.add(Dense(128))
-    model.add(LeakyReLU(0.2))
-    model.add(Dropout(0.3))
+    model.add(Separate())
+    model.add(residual_bloak(model.output_shape))
+    model.add(Add())
     model.add(Dense(10))
     model.add(Softmax())
 

@@ -1,5 +1,6 @@
 from tqdm import tqdm
 from statistics import mean
+from itertools import chain
 
 from .base_layer import Layer
 from ..backend import np, setup_data, restore_data
@@ -26,12 +27,23 @@ class Sequential(Layer):
     def compute_output_shape(self):
         return self.output_shape
 
-    def add(self, layer):
-        self.layers.append(layer)
-        layer.build(self.output_shape)
-        self.trainable_weights.extend(layer.get_trainable_weights())
-        self.non_trainable_weights.extend(layer.get_non_trainable_weights())
-        self.output_shape = layer.compute_output_shape()
+    def add(self, layers):
+        if not isinstance(layers, (list, tuple)):
+            layers = [layers]
+
+        self.layers.append(layers)
+        output_shapes = []
+
+        for layer in layers:
+            layer.build(self.output_shape)
+            self.trainable_weights.extend(layer.get_trainable_weights())
+            self.non_trainable_weights.extend(
+                layer.get_non_trainable_weights())
+            output_shapes.append(layer.compute_output_shape())
+
+        self.output_shape = output_shapes
+        if len(output_shapes) == 1:
+            self.output_shape = self.output_shape[0]
 
     def summary(self):
         print("_________________________________________________________________")
@@ -39,7 +51,7 @@ class Sequential(Layer):
         print("=================================================================")
         total_ct_params = 0
         total_nt_params = 0
-        for layer in self.layers:
+        for layer in chain(*self.layers):
             layer_name = layer.name
             layer_type = type(layer).__name__
             layer_shape = layer.compute_output_shape()
@@ -73,8 +85,13 @@ class Sequential(Layer):
 
     def call(self, inputs, training=False):
         x = inputs
-        for layer in self.layers:
-            x = layer.call(x, training=training)
+        for layers in self.layers:
+            x_temp = []
+            for layer in layers:
+                x_temp.append(layer.call(x, training=training))
+            x = x_temp
+            if len(x) == 1:
+                x = x[0]
 
         return x
 
@@ -98,8 +115,13 @@ class Sequential(Layer):
         return loss, metric
 
     def backward(self, dout):
-        for layer in reversed(self.layers):
-            dout = layer.backward(dout)
+        for layers in reversed(self.layers):
+            dout_temp = []
+            for layer in layers:
+                dout_temp.append(layer.backward(dout))
+            dout = dout_temp
+            if len(dout) == 1:
+                dout = dout[0]
         return dout
 
     def cal_gradient(self):

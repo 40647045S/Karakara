@@ -67,12 +67,69 @@ class Dropout(Layer):
     def compute_output_shape(self):
         return self.output_shape
 
-    def call(self, x, training=True, **kwargs):
+    def call(self, inputs, training=True, **kwargs):
         if training:
-            self.mask = np.random.rand(*x.shape) > self.dropout_ratio
-            return x * self.mask
+            self.mask = np.random.rand(*inputs.shape) > self.dropout_ratio
+            return inputs * self.mask
         else:
-            return x * (1.0 - self.dropout_ratio)
+            return inputs * (1.0 - self.dropout_ratio)
 
     def backward(self, dout):
         return dout * self.mask
+
+
+class Same(Layer):
+    def __init__(self):
+        super().__init__()
+
+    def build(self, input_shape):
+        self.output_shape = input_shape
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, inputs, **kwargs):
+        return inputs
+
+    def backward(self, dout):
+        return dout
+
+
+class Separate(Layer):
+    def __init__(self):
+        super().__init__()
+
+    def build(self, input_shape):
+        self.output_shape = input_shape
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, inputs, **kwargs):
+        return inputs
+
+    def backward(self, dout):
+        return np.sum(np.array(dout), axis=0)
+
+
+class Add(Layer):
+    def __init__(self):
+        super().__init__()
+        self.n_input = None
+
+    def build(self, input_shape):
+        for shape in input_shape:
+            if not shape == input_shape[0]:
+                raise ValueError(
+                    f'All input should have same shape but get {input_shape}')
+        self.n_input = len(input_shape)
+        self.output_shape = input_shape[0]
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, inputs, **kwargs):
+        return np.sum(np.array(inputs), axis=0)
+
+    def backward(self, dout):
+        return dout
