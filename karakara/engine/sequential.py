@@ -20,8 +20,9 @@ class Sequential(Layer):
         self.lossLayer = None
         self.optimizer = None
         self.metric = None
+        self.pre_node_nums = 10
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         self.built = True
 
     def compute_output_shape(self):
@@ -35,7 +36,9 @@ class Sequential(Layer):
         output_shapes = []
 
         for layer in layers:
-            layer.build(self.output_shape)
+            pre_node_nums = layer.build(self.output_shape, pre_node_nums=self.pre_node_nums)
+            if pre_node_nums:
+                self.pre_node_nums = pre_node_nums
             self.trainable_weights.extend(layer.get_trainable_weights())
             self.non_trainable_weights.extend(
                 layer.get_non_trainable_weights())
@@ -102,7 +105,7 @@ class Sequential(Layer):
 
         return output
 
-    def forward(self, X, y, training=False):
+    def forward(self, X, y, training=True):
         X, y = self.setup_data(X), self.setup_data(y)
         x = self.call(X, training)
 
@@ -114,7 +117,7 @@ class Sequential(Layer):
 
         return loss, metric
 
-    def evaluate(self, X, y, batch_size=32, training=False):
+    def evaluate(self, X, y, batch_size=64, training=False):
         num_step = X.shape[0] // batch_size
         X, y = self.setup_data(X), self.setup_data(y)
 
@@ -122,7 +125,7 @@ class Sequential(Layer):
         for i in range(num_step):
             X_step, y_step = X[batch_size * i: batch_size *
                                (i + 1)], y[batch_size * i: batch_size * (i + 1)]
-            loss, metric = self.forward(X_step, y_step)
+            loss, metric = self.forward(X_step, y_step, training=training)
             losses.append(loss)
             metrics.append(metric)
 
@@ -191,7 +194,7 @@ class Sequential(Layer):
                 batch_losses.append(batch_loss)
                 batch_metrics.append(batch_metric)
 
-                if verbose and n_batch % 50 == 0:
+                if verbose and n_batch % 10 == 0:
                     pbar.set_description(f"{n_batch}/{num_of_samples}")
                     pbar.set_postfix(loss=f'{batch_loss:.4f}',
                                      metric=f'{batch_metric:.4f}')

@@ -7,7 +7,7 @@ class BaseLossLayer(Layer):
     def __init__(self):
         super().__init__(trainable=False)
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         self.output_shape = 1
 
     def compute_output_shape(self):

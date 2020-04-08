@@ -1,5 +1,5 @@
 from karakara import config
-# config.GPU = True
+config.GPU = True
 import karakara.backend as K
 # K.set_floatx('float16')
 # K.set_epsilon(1e-4)
@@ -13,7 +13,7 @@ from utils import plot_history, make_mnist_data
 
 input_shape = 784
 n_classes = 10
-epochs = 2
+epochs = 5
 batch_size = 128
 
 

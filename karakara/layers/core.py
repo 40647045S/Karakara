@@ -2,6 +2,7 @@ from math import sqrt
 from numpy import prod
 from ..backend import np
 from ..engine.base_layer import Layer
+from ..utils.math_utils import cal_init_std
 
 
 class Dense(Layer):
@@ -14,16 +15,9 @@ class Dense(Layer):
             self.input_shape = input_shape if isinstance(
                 input_shape, (tuple, list)) else (input_shape, )
 
-        if kernel_initializer == 'Xavier':
-            self.weight_std = sqrt(1 / units)
-        elif kernel_initializer == 'He':
-            self.weight_std = sqrt(2 / units)
-        elif isinstance(kernel_initializer, (int, float)):
-            self.weight_std = kernel_initializer
-        else:
-            raise ValueError(f'{kernel_initializer} 是在哈樓？')
+        self.kernel_initializer = kernel_initializer
 
-    def build(self, input_shape):
+    def build(self, input_shape, pre_node_nums, **kwargs):
         if not self.built:
             if not input_shape:
                 input_shape = self.input_shape
@@ -31,14 +25,17 @@ class Dense(Layer):
             if self.input_shape:
                 assert self.input_shape == input_shape
 
+            weight_std = cal_init_std(self.kernel_initializer, pre_node_nums)
+
             # assert input_shape
-            print(input_shape)
             self.kernel = self.add_weight(
-                shape=(input_shape[-1], self.units), std=self.weight_std)
+                shape=(input_shape[-1], self.units), std=weight_std)
             self.bias = self.add_weight(shape=(self.units, ), std=0)
 
             self.output_shape = (input_shape[:-1]) + (self.units, )
             self.built = True
+
+            return self.units
 
     def compute_output_shape(self):
         return self.output_shape
@@ -62,7 +59,7 @@ class Dropout(Layer):
         self.dropout_ratio = dropout_ratio
         self.mask = None
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         self.output_shape = input_shape
 
     def compute_output_shape(self):
@@ -83,7 +80,7 @@ class Same(Layer):
     def __init__(self):
         super().__init__()
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         self.output_shape = input_shape
 
     def compute_output_shape(self):
@@ -100,7 +97,7 @@ class Separate(Layer):
     def __init__(self):
         super().__init__()
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         self.output_shape = input_shape
 
     def compute_output_shape(self):
@@ -118,7 +115,7 @@ class Add(Layer):
         super().__init__()
         self.n_input = None
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         for shape in input_shape:
             if not shape == input_shape[0]:
                 raise ValueError(
@@ -141,7 +138,7 @@ class Flatten(Layer):
         super().__init__()
         self.input_shape = None
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         self.output_shape = (prod(input_shape), )
 
     def compute_output_shape(self):

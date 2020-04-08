@@ -69,7 +69,7 @@ class Layer(object):
         for weight in self.non_trainable_weights:
             weight.to_gpu(device)
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         raise NotImplementedError
 
     def compute_output_shape(self):

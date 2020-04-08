@@ -20,3 +20,14 @@ def categorical_crossentropy_error(y, t):
 
     batch_size = y.shape[0]
     return -np.sum(np.log(y[np.arange(batch_size), t] + epsilon())) / batch_size
+
+
+def cal_init_std(initializer, pre_node_nums):
+    if initializer == 'Xavier':
+        return np.sqrt(1 / pre_node_nums)
+    elif initializer == 'He':
+        return np.sqrt(2 / pre_node_nums)
+    elif isinstance(initializer, (int, float)):
+        return initializer
+    else:
+        raise ValueError(f'initializer: {initializer} 是在哈樓？')

@@ -3,6 +3,7 @@
 from ..backend import np
 from ..engine.base_layer import Layer
 from ..utils.conv_utils import im2col, col2im
+from ..utils.math_utils import cal_init_std
 
 
 class Conv2D(Layer):
@@ -28,8 +29,9 @@ class Conv2D(Layer):
         self.col = None
         self.col_W = None
 
-    def build(self, input_shape):
+    def build(self, input_shape, pre_node_nums, **kwargs):
         if not self.built:
+
             if not input_shape:
                 input_shape = self.input_shape
 
@@ -39,8 +41,10 @@ class Conv2D(Layer):
             C, H, W = input_shape
             self.channel = C
 
+            weight_std = cal_init_std('He', pre_node_nums)
+
             self.kernel = self.add_weight(
-                shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=0.01)
+                shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=weight_std)
             self.bias = self.add_weight(shape=(self.filters, ), std=0)
 
             out_h = 1 + int((H + 2 * self.pad - self.kernel_h) / self.stride)
@@ -48,6 +52,8 @@ class Conv2D(Layer):
 
             self.output_shape = (self.filters, out_h, out_w)
             self.built = True
+
+            return self.channel * self.kernel_h * self.kernel_w
 
     def compute_output_shape(self):
         return self.output_shape
@@ -100,7 +106,7 @@ class MaxPooling2D(Layer):
         self.x = None
         self.arg_max = None
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         C, H, W = input_shape
         out_h = int(1 + (H - self.pool_h) / self.stride)
         out_w = int(1 + (W - self.pool_w) / self.stride)

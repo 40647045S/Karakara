@@ -8,7 +8,7 @@ class BaseActivation(Layer):
         super().__init__(trainable=False)
         self.output_shape = None
 
-    def build(self, input_shape):
+    def build(self, input_shape, **kwargs):
         self.output_shape = input_shape
 
     def compute_output_shape(self):
@@ -95,9 +95,6 @@ class Softmax(BaseActivation):
         self.out = None
         self.epsilon = epsilon
         self.output_shape = None
-
-    def build(self, input_shape):
-        self.output_shape = input_shape
 
     def compute_output_shape(self):
         return self.output_shape
