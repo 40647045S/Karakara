@@ -63,7 +63,7 @@ class Sequential(Layer):
             layer_shape_str = f"{(None, ) + layer_shape}"
             layer_name_str = f"{layer_name} ({layer_type})"
             print(
-                f"{layer_name_str:29s}{layer_shape_str:26s}{str(layer_ct_params+layer_nt_params):10s}")
+                f"{layer_name_str:29.29s}{layer_shape_str:26.26s}{str(layer_ct_params+layer_nt_params):10.10s}")
             total_ct_params += layer_ct_params
             total_nt_params += layer_nt_params
         print("=================================================================")

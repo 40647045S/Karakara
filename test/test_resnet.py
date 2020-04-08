@@ -10,7 +10,7 @@ import karakara.backend as K
 # K.set_epsilon(1e-4)
 
 from karakara.models import Sequential
-from karakara.layers import Dense, Dropout, Input
+from karakara.layers import Dense, Dropout, Add, Separate, Same
 from karakara.layers import Flatten, Conv2D, MaxPooling2D
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
 from karakara.optimizers import SGD, Momentom, Adam
@@ -22,15 +22,14 @@ from utils import make_mnist_data, plot_history, make_fasion_mnist_data, make_ci
 
 input_shape = (3, 32, 32)
 n_classes = 10
-epochs = 30
-batch_size = 128
+epochs = 2
+batch_size = 64
 
 
 def make_model():
     model = Sequential()
-    model.add(Input(shape=input_shape))
     model.add(Conv2D(32, kernel_size=(3, 3), stride=1,
-                     pad='same'))
+                     pad='same', input_shape=input_shape))
     model.add(ReLU())
     model.add(Dropout(0.25))
     model.add(MaxPooling2D(2, 2, stride=2))
@@ -56,10 +55,9 @@ def make_model():
 
 def main():
     (X_train, y_train), (X_valid, y_valid), (X_test,
-                                             y_test) = make_cifar10_data(0.1)
-    print(f'X_train: {X_train.shape}')
-    print(f'X_valid: {X_valid.shape}')
-    print(f'X_test  : {X_test.shape}')
+                                             y_test) = make_cifar10_data()
+    print(X_train.shape)
+    print(X_test.shape)
 
     model = make_model()
 

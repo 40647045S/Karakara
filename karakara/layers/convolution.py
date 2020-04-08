@@ -48,7 +48,8 @@ class Conv2D(Layer):
 
             self.kernel = self.add_weight(
                 shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=weight_std)
-            self.bias = self.add_weight(shape=(self.filters, ), std=0)
+            self.bias = self.add_weight(
+                shape=(self.filters, ), mean=0, initializer='constant')
 
             out_h = 1 + int((H + 2 * self.pad - self.kernel_h) / self.stride)
             out_w = 1 + int((W + 2 * self.pad - self.kernel_w) / self.stride)

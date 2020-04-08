@@ -5,6 +5,24 @@ from ..engine.base_layer import Layer
 from ..utils.math_utils import cal_init_std
 
 
+class Input(Layer):
+    def __init__(self, shape, **kwargs):
+        super().__init__(**kwargs)
+        self.input_shape = shape
+
+    def build(self, input_shape, **kwargs):
+        return prod(self.input_shape)
+
+    def compute_output_shape(self):
+        return self.input_shape
+
+    def call(self, inputs, **kwargs):
+        return inputs
+
+    def backward(self, dout):
+        return dout
+
+
 class Dense(Layer):
 
     def __init__(self, units, input_shape=None, kernel_initializer='Xavier', **kwargs):
@@ -32,7 +50,8 @@ class Dense(Layer):
             # assert input_shape
             self.kernel = self.add_weight(
                 shape=(input_shape[-1], self.units), std=weight_std)
-            self.bias = self.add_weight(shape=(self.units, ), std=0)
+            self.bias = self.add_weight(
+                shape=(self.units, ), mean=0, initializer='constant')
 
             self.output_shape = (input_shape[:-1]) + (self.units, )
             self.built = True
@@ -76,6 +95,102 @@ class Dropout(Layer):
 
     def backward(self, dout):
         return dout * self.mask
+
+
+class BatchNormalization(Layer):
+    def __init__(self, momentum=0.9, running_mean=None, running_var=None, **kwargs):
+        super().__init__()
+        self.gamma = None  # 1
+        self.beta = None  # 0
+        self.momentum = momentum
+        self.input_shape = None
+
+        self.running_mean = running_mean
+        self.running_var = running_var
+
+        self.batch_size = None
+        self.xc = None
+        self.std = None
+
+    def build(self, input_shape, **kwargs):
+        self.output_shape = input_shape
+
+        D = (prod(input_shape), )
+
+        if self.beta is None:
+            self.beta = self.add_weight(D, mean=0, initializer='constant', trainable=True)
+            self.gamma = self.add_weight(D, mean=1, initializer='constant', trainable=True)
+
+        if self.running_mean is None:
+            self.running_mean = self.add_weight(D, mean=0, initializer='constant', trainable=False)
+            self.running_var = self.add_weight(D, mean=1, initializer='constant', trainable=False)
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, x, training=True, **kwargs):
+        self.input_shape = x.shape
+        if x.ndim != 2:
+            N, C, H, W = x.shape
+            x = x.reshape(N, -1)
+
+        out = self.__forward(x, training)
+
+        return out.reshape(*self.input_shape)
+
+    def __forward(self, x, train_flg):
+
+        if train_flg:
+            mu = x.mean(axis=0)
+            xc = x - mu
+            var = np.var(x, axis=0)
+            std = np.sqrt(var + 10e-7)
+            xn = xc / std
+
+            self.batch_size = x.shape[0]
+            self.xc = xc
+            self.xn = xn
+            self.std = std
+            self.running_mean.weight = self.momentum * self.running_mean.weight + (1 - self.momentum) * mu
+            self.running_var.weight = self.momentum * self.running_var.weight + (1 - self.momentum) * var
+        else:
+            xc = x - self.running_mean.weight
+            xn = xc / ((np.sqrt(self.running_var.weight + 10e-7)))
+
+        out = self.gamma.weight * xn + self.beta.weight
+        return out
+
+    def backward(self, dout):
+        if dout.ndim != 2:
+            N, C, H, W = dout.shape
+            dout = dout.reshape(N, -1)
+
+        dx = self.__backward(dout)
+
+        dx = dx.reshape(*self.input_shape)
+        return dx
+
+    def __backward(self, dout):
+        dbeta = dout.sum(axis=0)
+        dgamma = np.sum(self.xn * dout, axis=0)
+
+        # dxn = self.gamma.weight * dout
+        # dxc = dxn / self.std
+        # dstd = -np.sum((dxn * self.xc) / (self.std * self.std), axis=0)
+        # dvar = 0.5 * dstd / self.std
+        # dxc += (2.0 / self.batch_size) * self.xc * dvar
+        # dmu = np.sum(dxc, axis=0)
+        # dx = dxc - dmu / self.batch_size
+
+        dxn = self.gamma.weight * dout
+        dxc = dxn / self.std + \
+            self.xc / self.batch_size * - np.sum((dxn * self.xc), axis=0) / (self.std * self.std * self.std)
+        dx = dxc - np.sum(dxc, axis=0) / self.batch_size
+
+        self.gamma.gradient = dgamma
+        self.beta.gradient = dbeta
+
+        return dx
 
 
 class Same(Layer):

@@ -37,8 +37,16 @@ class Layer(object):
         for trainable_weight in self.trainable_weights:
             trainable_weight.trainable = new_trainable
 
-    def add_weight(self, shape, std=0., trainable=True):
-        value = setup_data(std * np.random.randn(*shape))
+    def add_weight(self, shape, mean=0, std=0, initializer='normal', trainable=True):
+        if initializer == 'normal':
+            value = setup_data(std * np.random.randn(*shape) + mean)
+        elif initializer == 'uniform':
+            value = setup_data(std * np.random.rand(*shape) + mean)
+        elif initializer == 'constant':
+            value = setup_data(np.full(shape, mean))
+        else:
+            raise ValueError(f'Unknow initializer: {initializer}')
+
         weight = Weight(value)
 
         if trainable:

@@ -10,7 +10,7 @@ import karakara.backend as K
 # K.set_epsilon(1e-4)
 
 from karakara.models import Sequential
-from karakara.layers import Dense, Dropout, Input
+from karakara.layers import Dense, Dropout, BatchNormalization, Input
 from karakara.layers import Flatten, Conv2D, MaxPooling2D
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
 from karakara.optimizers import SGD, Momentom, Adam
@@ -22,29 +22,33 @@ from utils import make_mnist_data, plot_history, make_fasion_mnist_data, make_ci
 
 input_shape = (3, 32, 32)
 n_classes = 10
-epochs = 30
-batch_size = 128
+epochs = 40
+batch_size = 32
 
 
 def make_model():
     model = Sequential()
     model.add(Input(shape=input_shape))
-    model.add(Conv2D(32, kernel_size=(3, 3), stride=1,
-                     pad='same'))
+    model.add(Conv2D(32, kernel_size=(3, 3), stride=1, pad='same'))
+    model.add(BatchNormalization())
     model.add(ReLU())
-    model.add(Dropout(0.25))
+    model.add(Conv2D(32, kernel_size=(3, 3), stride=1, pad='same'))
+    model.add(BatchNormalization())
+    model.add(ReLU())
     model.add(MaxPooling2D(2, 2, stride=2))
 
     model.add(Conv2D(64, kernel_size=(3, 3), stride=1, pad='same'))
+    model.add(BatchNormalization())
     model.add(ReLU())
-    model.add(Dropout(0.25))
+    model.add(Conv2D(64, kernel_size=(3, 3), stride=1, pad='same'))
+    model.add(BatchNormalization())
+    model.add(ReLU())
     model.add(MaxPooling2D(2, 2, stride=2))
 
     model.add(Flatten())
-    model.add(Dropout(0.25))
-    model.add(Dense(1024, kernel_initializer='He'))
+    model.add(Dense(512, kernel_initializer='He'))
+    model.add(BatchNormalization())
     model.add(ReLU())
-    model.add(Dropout(0.25))
     model.add(Dense(10, kernel_initializer='He'))
     model.add(Softmax())
 
@@ -55,11 +59,9 @@ def make_model():
 
 
 def main():
-    (X_train, y_train), (X_valid, y_valid), (X_test,
-                                             y_test) = make_cifar10_data(0.1)
-    print(f'X_train: {X_train.shape}')
-    print(f'X_valid: {X_valid.shape}')
-    print(f'X_test  : {X_test.shape}')
+    (X_train, y_train), (X_valid, y_valid), (X_test, y_test) = make_cifar10_data()
+    print(X_train.shape)
+    print(X_test.shape)
 
     model = make_model()
 
