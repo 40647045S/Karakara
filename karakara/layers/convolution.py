@@ -1,5 +1,7 @@
 # Rer: https://github.com/oreilly-japan/deep-learning-from-scratch/
 
+from numpy import prod
+
 from ..backend import np
 from ..engine.base_layer import Layer
 from ..utils.conv_utils import im2col, col2im
@@ -31,7 +33,6 @@ class Conv2D(Layer):
 
     def build(self, input_shape, pre_node_nums, **kwargs):
         if not self.built:
-
             if not input_shape:
                 input_shape = self.input_shape
 
@@ -41,6 +42,8 @@ class Conv2D(Layer):
             C, H, W = input_shape
             self.channel = C
 
+            if not pre_node_nums:
+                pre_node_nums = prod(input_shape)
             weight_std = cal_init_std('He', pre_node_nums)
 
             self.kernel = self.add_weight(
@@ -53,7 +56,7 @@ class Conv2D(Layer):
             self.output_shape = (self.filters, out_h, out_w)
             self.built = True
 
-            return self.channel * self.kernel_h * self.kernel_w
+            return self.filters * self.kernel_h * self.kernel_w
 
     def compute_output_shape(self):
         return self.output_shape
@@ -79,9 +82,10 @@ class Conv2D(Layer):
     def backward(self, dout):
         dout = dout.transpose(0, 2, 3, 1).reshape(-1, self.filters)
 
-        self.db = np.sum(dout, axis=0)
-        self.dW = np.dot(self.col.T, dout)
-        self.dW = self.dW.transpose(1, 0).reshape(self.kernel.weight.shape)
+        self.bias.gradient = np.sum(dout, axis=0)
+        self.kernel.gradient = np.dot(self.col.T, dout)
+        self.kernel.gradient = self.kernel.gradient.transpose(
+            1, 0).reshape(self.kernel.weight.shape)
 
         dcol = np.dot(dout, self.col_W.T)
         dx = col2im(dcol, self.x.shape, self.kernel_h,

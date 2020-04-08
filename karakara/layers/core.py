@@ -25,6 +25,8 @@ class Dense(Layer):
             if self.input_shape:
                 assert self.input_shape == input_shape
 
+            if not pre_node_nums:
+                pre_node_nums = prod(input_shape)
             weight_std = cal_init_std(self.kernel_initializer, pre_node_nums)
 
             # assert input_shape

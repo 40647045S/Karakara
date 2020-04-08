@@ -22,7 +22,7 @@ from utils import make_mnist_data, plot_history, make_fasion_mnist_data, make_ci
 
 input_shape = (3, 32, 32)
 n_classes = 10
-epochs = 2
+epochs = 10
 batch_size = 64
 
 
@@ -31,15 +31,17 @@ def make_model():
     model.add(Conv2D(32, kernel_size=(3, 3), stride=1,
                      pad='same', input_shape=input_shape))
     model.add(ReLU())
+    model.add(Dropout(0.25))
     model.add(MaxPooling2D(2, 2, stride=2))
 
     model.add(Conv2D(64, kernel_size=(3, 3), stride=1, pad='same'))
     model.add(ReLU())
+    model.add(Dropout(0.25))
     model.add(MaxPooling2D(2, 2, stride=2))
 
     model.add(Flatten())
     model.add(Dropout(0.25))
-    model.add(Dense(256, kernel_initializer='He'))
+    model.add(Dense(1024, kernel_initializer='He'))
     model.add(ReLU())
     model.add(Dropout(0.25))
     model.add(Dense(10, kernel_initializer='He'))

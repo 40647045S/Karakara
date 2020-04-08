@@ -24,9 +24,9 @@ def categorical_crossentropy_error(y, t):
 
 def cal_init_std(initializer, pre_node_nums):
     if initializer == 'Xavier':
-        return np.sqrt(1 / pre_node_nums)
+        return np.sqrt(1.0 / pre_node_nums)
     elif initializer == 'He':
-        return np.sqrt(2 / pre_node_nums)
+        return np.sqrt(2.0 / pre_node_nums)
     elif isinstance(initializer, (int, float)):
         return initializer
     else:

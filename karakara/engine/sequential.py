@@ -20,7 +20,7 @@ class Sequential(Layer):
         self.lossLayer = None
         self.optimizer = None
         self.metric = None
-        self.pre_node_nums = 10
+        self.pre_node_nums = None
 
     def build(self, input_shape, **kwargs):
         self.built = True
@@ -36,7 +36,8 @@ class Sequential(Layer):
         output_shapes = []
 
         for layer in layers:
-            pre_node_nums = layer.build(self.output_shape, pre_node_nums=self.pre_node_nums)
+            pre_node_nums = layer.build(
+                self.output_shape, pre_node_nums=self.pre_node_nums)
             if pre_node_nums:
                 self.pre_node_nums = pre_node_nums
             self.trainable_weights.extend(layer.get_trainable_weights())
