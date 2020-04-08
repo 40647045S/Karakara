@@ -42,12 +42,11 @@ class Conv2D(Layer):
             C, H, W = input_shape
             self.channel = C
 
-            if not pre_node_nums:
-                pre_node_nums = prod(input_shape)
+            pre_node_nums = C * self.kernel_h * self.kernel_w
             weight_std = cal_init_std('He', pre_node_nums)
 
             self.kernel = self.add_weight(
-                shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=weight_std)
+                shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=0.08)
             self.bias = self.add_weight(
                 shape=(self.filters, ), mean=0, initializer='constant')
 
@@ -57,7 +56,7 @@ class Conv2D(Layer):
             self.output_shape = (self.filters, out_h, out_w)
             self.built = True
 
-            return self.filters * self.kernel_h * self.kernel_w
+            return self.channel * self.kernel_h * self.kernel_w
 
     def compute_output_shape(self):
         return self.output_shape

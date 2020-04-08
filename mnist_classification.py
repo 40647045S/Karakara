@@ -7,7 +7,7 @@ import karakara.backend as K
 from karakara.models import Sequential
 from karakara.layers import Dense, Dropout
 from karakara.activations import Sigmoid, LeakyReLU, Softmax
-from karakara.optimizers import SGD, Momentom, Adam
+from karakara.optimizers import SGD, Momentom, Adam, RMSprop
 
 from utils import plot_history, make_mnist_data
 
@@ -35,7 +35,7 @@ def make_model():
     model.add(Softmax())
 
     model.summary()
-    model.compile(Momentom(), 'categorical_crossentropy', 'accuracy')
+    model.compile(Adam(), 'categorical_crossentropy', 'accuracy')
 
     return model
 

@@ -13,7 +13,7 @@ from karakara.models import Sequential
 from karakara.layers import Dense, Dropout, BatchNormalization, Input
 from karakara.layers import Flatten, Conv2D, MaxPooling2D
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
-from karakara.optimizers import SGD, Momentom, Adam
+from karakara.optimizers import SGD, Momentom, Adam, RMSprop
 
 from karakara.utils.conv_utils import im2col, col2im
 from karakara.backend import np
@@ -30,36 +30,36 @@ def make_model():
     model = Sequential()
     model.add(Input(shape=input_shape))
     model.add(Conv2D(32, kernel_size=(3, 3), stride=1, pad='same'))
-    model.add(BatchNormalization())
+    # model.add(BatchNormalization())
     model.add(ReLU())
     model.add(Conv2D(32, kernel_size=(3, 3), stride=1, pad='same'))
-    model.add(BatchNormalization())
+    # model.add(BatchNormalization())
     model.add(ReLU())
     model.add(MaxPooling2D(2, 2, stride=2))
 
     model.add(Conv2D(64, kernel_size=(3, 3), stride=1, pad='same'))
-    model.add(BatchNormalization())
+    # model.add(BatchNormalization())
     model.add(ReLU())
     model.add(Conv2D(64, kernel_size=(3, 3), stride=1, pad='same'))
-    model.add(BatchNormalization())
+    # model.add(BatchNormalization())
     model.add(ReLU())
     model.add(MaxPooling2D(2, 2, stride=2))
 
     model.add(Flatten())
     model.add(Dense(512, kernel_initializer='He'))
-    model.add(BatchNormalization())
+    # model.add(BatchNormalization())
     model.add(ReLU())
     model.add(Dense(10, kernel_initializer='He'))
     model.add(Softmax())
 
     model.summary()
-    model.compile(Adam(), 'categorical_crossentropy', 'accuracy')
+    model.compile(RMSprop(lr=0.0001, decay=1e-6), loss='categorical_crossentropy', metric='accuracy')
 
     return model
 
 
 def main():
-    (X_train, y_train), (X_valid, y_valid), (X_test, y_test) = make_cifar10_data()
+    (X_train, y_train), (X_valid, y_valid), (X_test, y_test) = make_cifar10_data(0.1)
     print(X_train.shape)
     print(X_test.shape)
 

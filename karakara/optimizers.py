@@ -37,6 +37,30 @@ class Momentom(Optimizer):
             weight.weight += self.v[weight]
 
 
+class RMSprop(Optimizer):
+    def __init__(self, lr=0.001, rho=0.9, epsilon=epsilon(), decay=0.0):
+        self.lr = lr
+        self.current_lr = lr
+        self.epsilon = epsilon
+        self.rho = rho
+        self.decay = decay
+        self.h = {}
+        self.iter = 0
+
+    def update(self, weights):
+        self.iter += 1
+        self.current_lr *= (1 - self.decay)
+
+        for weight in self.get_trainable(weights):
+            if not weight in self.h:
+                self.h[weight] = np.zeros_like(weight.weight)
+
+            param_h = self.h[weight]
+            param_h = self.rho * param_h + (1 - self.rho) * weight.gradient**2
+
+            weight.weight -= self.current_lr * weight.gradient / (np.sqrt(param_h) + self.epsilon)
+
+
 class Adam(Optimizer):
 
     def __init__(self, lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=epsilon()):
@@ -55,8 +79,6 @@ class Adam(Optimizer):
                                  self.iter) / (1.0 - self.beta_1**self.iter)
 
         for weight in self.get_trainable(weights):
-            # print(weight.weight)
-            # print(weight.gradient)
             if not weight in self.v:
                 self.v[weight] = np.zeros_like(weight.weight)
                 self.m[weight] = np.zeros_like(weight.weight)

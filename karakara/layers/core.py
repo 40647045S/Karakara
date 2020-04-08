@@ -11,7 +11,7 @@ class Input(Layer):
         self.input_shape = shape
 
     def build(self, input_shape, **kwargs):
-        return prod(self.input_shape)
+        return prod(self.input_shape) / 10
 
     def compute_output_shape(self):
         return self.input_shape
@@ -43,8 +43,7 @@ class Dense(Layer):
             if self.input_shape:
                 assert self.input_shape == input_shape
 
-            if not pre_node_nums:
-                pre_node_nums = prod(input_shape)
+            pre_node_nums = prod(input_shape)
             weight_std = cal_init_std(self.kernel_initializer, pre_node_nums)
 
             # assert input_shape
