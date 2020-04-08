@@ -118,7 +118,7 @@ class Sequential(Layer):
 
         return loss, metric
 
-    def evaluate(self, X, y, batch_size=64, training=False):
+    def evaluate(self, X, y, batch_size=32, training=False):
         num_step = X.shape[0] // batch_size
         X, y = self.setup_data(X), self.setup_data(y)
 
@@ -202,7 +202,7 @@ class Sequential(Layer):
 
             train_loss = mean(batch_losses)
             train_metric = mean(batch_metrics)
-            valid_loss, valid_metric = self.evaluate(X_valid, y_valid)
+            valid_loss, valid_metric = self.evaluate(X_valid, y_valid, batch_size=batch_size)
 
             self.history['loss'].append(train_loss)
             self.history[self.metric.nickname].append(train_metric)

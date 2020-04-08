@@ -4,10 +4,11 @@ from ..utils.generic_utils import naming_system
 
 class Weight:
 
-    def __init__(self, weight, trainable=True):
+    def __init__(self, weight, trainable=True, name=None):
         self.weight = weight
         self.gradient = np.zeros_like(weight)
         self.trainable = trainable
+        self.name = name
 
     def get_params_count(self):
         return self.weight.size
@@ -47,7 +48,7 @@ class Layer(object):
         else:
             raise ValueError(f'Unknow initializer: {initializer}')
 
-        weight = Weight(value)
+        weight = Weight(value, name=self.name)
 
         if trainable:
             self.trainable_weights.append(weight)

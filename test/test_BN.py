@@ -6,8 +6,8 @@ sys.path.insert(0, os.path.dirname(
 from karakara import config
 config.GPU = True
 import karakara.backend as K
-# K.set_floatx('float16')
-# K.set_epsilon(1e-4)
+K.set_floatx('float16')
+K.set_epsilon(1e-4)
 
 from karakara.models import Sequential
 from karakara.layers import Dense, Dropout, BatchNormalization, Input
@@ -22,7 +22,7 @@ from utils import make_mnist_data, plot_history, make_fasion_mnist_data, make_ci
 
 input_shape = (3, 32, 32)
 n_classes = 10
-epochs = 40
+epochs = 1
 batch_size = 32
 
 

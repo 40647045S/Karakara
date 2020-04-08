@@ -2,7 +2,7 @@
 
 from numpy import prod
 
-from ..backend import np
+from ..backend import np, setup_data
 from ..engine.base_layer import Layer
 from ..utils.conv_utils import im2col, col2im
 from ..utils.math_utils import cal_init_std
@@ -121,6 +121,7 @@ class MaxPooling2D(Layer):
     def compute_output_shape(self):
         return self.output_shape
 
+    @profile
     def call(self, inputs, **kwargs):
         N, C, H, W = inputs.shape
         out_h = int(1 + (H - self.pool_h) / self.stride)
@@ -139,17 +140,17 @@ class MaxPooling2D(Layer):
 
         return out
 
+    @profile
     def backward(self, dout):
         _, _, h, w = self.x.shape
 
         dout = dout.transpose(0, 2, 3, 1)
 
         pool_size = self.pool_h * self.pool_w
-        dmax = np.zeros((dout.size, pool_size))
+        dmax = setup_data(np.zeros((dout.size, pool_size)))
         dmax[np.arange(self.arg_max.size),
              self.arg_max.flatten()] = dout.flatten()
         dmax = dmax.reshape(dout.shape + (pool_size,))
-
         dcol = dmax.reshape(dmax.shape[0] * dmax.shape[1] * dmax.shape[2], -1)
         dx = col2im(dcol, self.x.shape, self.pool_h,
                     self.pool_w, self.stride, self.stride, self.pad, self.pad)

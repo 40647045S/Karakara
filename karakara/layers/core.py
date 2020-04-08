@@ -60,11 +60,13 @@ class Dense(Layer):
     def compute_output_shape(self):
         return self.output_shape
 
+    @profile
     def call(self, inputs, **kwargs):
         self.x = inputs
         output = np.dot(inputs, self.kernel.weight) + self.bias.weight
         return output
 
+    @profile
     def backward(self, dout):
         dx = np.dot(dout, self.kernel.weight.T)
         self.kernel.gradient = np.dot(self.x.T, dout)
@@ -97,11 +99,13 @@ class Dropout(Layer):
 
 
 class BatchNormalization(Layer):
-    def __init__(self, momentum=0.99, running_mean=None, running_var=None, **kwargs):
+    def __init__(self, axis=1, momentum=0.99, running_mean=None, running_var=None, **kwargs):
         super().__init__()
+        self.axis = 1
         self.gamma = None  # 1
         self.beta = None  # 0
         self.momentum = momentum
+        self.momentum_decay = 1 - momentum
         self.input_shape = None
 
         self.running_mean = running_mean
@@ -114,7 +118,9 @@ class BatchNormalization(Layer):
     def build(self, input_shape, **kwargs):
         self.output_shape = input_shape
 
-        D = (prod(input_shape), )
+        t = ((0, ) + input_shape)[self.axis]
+        D = [1] * (len(input_shape) + 1)
+        D[self.axis] = t
 
         if self.beta is None:
             self.beta = self.add_weight(D, mean=0, initializer='constant', trainable=True)
@@ -127,31 +133,39 @@ class BatchNormalization(Layer):
     def compute_output_shape(self):
         return self.output_shape
 
-    def call(self, x, training=True, **kwargs):
-        self.input_shape = x.shape
-        if x.ndim != 2:
-            N, C, H, W = x.shape
-            x = x.reshape(N, -1)
+    @profile
+    def call(self, inputs, training=True, **kwargs):
+        self.input_shape = inputs.shape
+        # if x.ndim != 2:
+        #     N, C, H, W = x.shape
+        #     x = inputs.mean(axis=self.axis)
+        # x = x.reshape(N, -1)
 
-        out = self.__forward(x, training)
+        out = self.__forward(inputs, training)
 
         return out.reshape(*self.input_shape)
 
-    def __forward(self, x, train_flg):
+    @profile
+    def __forward(self, inputs, train_flg):
 
+        x = inputs
         if train_flg:
-            mu = x.mean(axis=0)
+            axises = list(range(x.ndim))
+            axises.remove(self.axis)
+            axises = tuple(axises)
+            mu = x.mean(axis=axises, keepdims=True)
             xc = x - mu
-            var = np.var(x, axis=0)
+            var = np.var(x, axis=axises, keepdims=True)
             std = np.sqrt(var + 10e-7)
-            xn = xc / std
+
+            xn = (inputs - mu) / std
 
             self.batch_size = x.shape[0]
             self.xc = xc
             self.xn = xn
             self.std = std
-            self.running_mean.weight = self.momentum * self.running_mean.weight + (1 - self.momentum) * mu
-            self.running_var.weight = self.momentum * self.running_var.weight + (1 - self.momentum) * var
+            self.running_mean.weight = self.running_mean.weight - (self.running_mean.weight - mu) * self.momentum_decay
+            self.running_var.weight = self.running_var.weight - (self.running_var.weight - var) * self.momentum_decay
         else:
             xc = x - self.running_mean.weight
             xn = xc / ((np.sqrt(self.running_var.weight + 10e-7)))
@@ -159,19 +173,23 @@ class BatchNormalization(Layer):
         out = self.gamma.weight * xn + self.beta.weight
         return out
 
+    @profile
     def backward(self, dout):
-        if dout.ndim != 2:
-            N, C, H, W = dout.shape
-            dout = dout.reshape(N, -1)
+        # if dout.ndim != 2:
+        #     N, C, H, W = dout.shape
+        #     dout = dout.reshape(N, -1)
 
         dx = self.__backward(dout)
 
         dx = dx.reshape(*self.input_shape)
         return dx
 
+    @profile
     def __backward(self, dout):
-        dbeta = dout.sum(axis=0)
-        dgamma = np.sum(self.xn * dout, axis=0)
+        axises = list(range(dout.ndim))
+        axises.remove(self.axis)
+        dbeta = dout.sum(axis=axises, keepdims=True)
+        dgamma = np.sum(self.xn * dout, axis=axises, keepdims=True)
 
         # dxn = self.gamma.weight * dout
         # dxc = dxn / self.std
