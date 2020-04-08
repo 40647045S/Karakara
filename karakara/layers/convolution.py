@@ -1,0 +1,142 @@
+# Rer: https://github.com/oreilly-japan/deep-learning-from-scratch/
+
+from ..backend import np
+from ..engine.base_layer import Layer
+from ..utils.conv_utils import im2col, col2im
+
+
+class Conv2D(Layer):
+    def __init__(self, filters, kernel_size, stride=1, pad='valid', input_shape=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.filters = filters
+        if isinstance(kernel_size, int):
+            kernel_size = (kernel_size, kernel_size)
+
+        self.kernel_h = kernel_size[0]
+        self.kernel_w = kernel_size[1]
+        self.stride = stride
+
+        if pad == 'valid':
+            self.pad = 0
+        elif pad == 'same':
+            self.pad = kernel_size[0] // 2
+
+        self.input_shape = input_shape
+
+        self.x = None
+        self.col = None
+        self.col_W = None
+
+    def build(self, input_shape):
+        if not self.built:
+            if not input_shape:
+                input_shape = self.input_shape
+
+            if self.input_shape:
+                assert self.input_shape == input_shape
+
+            C, H, W = input_shape
+            self.channel = C
+
+            self.kernel = self.add_weight(
+                shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=0.01)
+            self.bias = self.add_weight(shape=(self.filters, ), std=0)
+
+            out_h = 1 + int((H + 2 * self.pad - self.kernel_h) / self.stride)
+            out_w = 1 + int((W + 2 * self.pad - self.kernel_w) / self.stride)
+
+            self.output_shape = (self.filters, out_h, out_w)
+            self.built = True
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, inputs, **kwargs):
+        N, C, H, W = inputs.shape
+        out_h = 1 + int((H + 2 * self.pad - self.kernel_h) / self.stride)
+        out_w = 1 + int((W + 2 * self.pad - self.kernel_w) / self.stride)
+
+        col = im2col(inputs, self.kernel_h,
+                     self.kernel_w, self.stride, self.pad)
+        col_W = self.kernel.weight.reshape(self.filters, -1).T
+
+        out = np.dot(col, col_W) + self.bias.weight
+        out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
+
+        self.x = inputs
+        self.col = col
+        self.col_W = col_W
+
+        return out
+
+    def backward(self, dout):
+        dout = dout.transpose(0, 2, 3, 1).reshape(-1, self.filters)
+
+        self.db = np.sum(dout, axis=0)
+        self.dW = np.dot(self.col.T, dout)
+        self.dW = self.dW.transpose(1, 0).reshape(self.kernel.weight.shape)
+
+        dcol = np.dot(dout, self.col_W.T)
+        dx = col2im(dcol, self.x.shape, self.kernel_h,
+                    self.kernel_w, self.stride, self.pad)
+
+        return dx
+
+
+class MaxPooling2D(Layer):
+
+    def __init__(self, pool_h, pool_w, stride=1, pad='valid', **kwargs):
+        super().__init__(**kwargs)
+        self.pool_h = pool_h
+        self.pool_w = pool_w
+        self.stride = stride
+
+        if pad == 'valid':
+            self.pad = 0
+        elif pad == 'same':
+            self.pad = pool_h // 2
+
+        self.x = None
+        self.arg_max = None
+
+    def build(self, input_shape):
+        C, H, W = input_shape
+        out_h = int(1 + (H - self.pool_h) / self.stride)
+        out_w = int(1 + (W - self.pool_w) / self.stride)
+        self.output_shape = (C, out_h, out_w)
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, inputs, **kwargs):
+        N, C, H, W = inputs.shape
+        out_h = int(1 + (H - self.pool_h) / self.stride)
+        out_w = int(1 + (W - self.pool_w) / self.stride)
+
+        col = im2col(inputs, self.pool_h, self.pool_w, self.stride, self.pad)
+        col = col.reshape(-1, self.pool_h * self.pool_w)
+
+        arg_max = np.argmax(col, axis=1)
+        out = np.max(col, axis=1)
+        out = out.reshape(N, out_h, out_w, C).transpose(0, 3, 1, 2)
+
+        self.x = inputs
+        self.arg_max = arg_max
+
+        return out
+
+    def backward(self, dout):
+        dout = dout.transpose(0, 2, 3, 1)
+
+        pool_size = self.pool_h * self.pool_w
+        dmax = np.zeros((dout.size, pool_size))
+        dmax[np.arange(self.arg_max.size),
+             self.arg_max.flatten()] = dout.flatten()
+        dmax = dmax.reshape(dout.shape + (pool_size,))
+
+        dcol = dmax.reshape(dmax.shape[0] * dmax.shape[1] * dmax.shape[2], -1)
+        dx = col2im(dcol, self.x.shape, self.pool_h,
+                    self.pool_w, self.stride, self.pad)
+
+        return dx

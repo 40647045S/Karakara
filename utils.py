@@ -1,9 +1,12 @@
 import numpy as np
 
 import matplotlib.pyplot as plt
-from tensorflow.keras.datasets import mnist, fashion_mnist, cifar10
+from tensorflow import keras
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.datasets import mnist, fashion_mnist, cifar10
 from sklearn.model_selection import train_test_split
+
+keras.backend.set_image_data_format('channels_first')
 
 n_classes = 10
 
@@ -37,15 +40,15 @@ def make_mnist_data(valid_ratio=0.2):
 def make_fasion_mnist_data(valid_ratio=0.2):
     (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
 
-    X_train = X_train.reshape(60000, 784)
-    X_test = X_test.reshape(10000, 784)
+    X_train = X_train
+    X_test = X_test
     X_train = X_train.astype('float32')
     X_test = X_test.astype('float32')
     X_train /= 255
     X_test /= 255
 
-    y_train = to_categorical(y_train, n_classes)
-    y_test = to_categorical(y_test, n_classes)
+    y_train = to_categorical(y_train, 10)
+    y_test = to_categorical(y_test, 10)
 
     if valid_ratio > 0:
         X_train, X_valid, y_train, y_valid = train_test_split(
@@ -63,8 +66,8 @@ def make_fasion_mnist_data(valid_ratio=0.2):
 def make_cifar10_data(valid_ratio=0.2):
     (X_train, y_train), (X_test, y_test) = cifar10.load_data()
 
-    X_train = X_train.reshape(50000, 3072)
-    X_test = X_test.reshape(10000, 3072)
+    X_train = X_train
+    X_test = X_test
     X_train = X_train.astype('float32')
     X_test = X_test.astype('float32')
     X_train /= 255

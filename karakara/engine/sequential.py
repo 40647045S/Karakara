@@ -102,7 +102,7 @@ class Sequential(Layer):
 
         return output
 
-    def evaluate(self, X, y, training=False):
+    def forward(self, X, y, training=False):
         X, y = self.setup_data(X), self.setup_data(y)
         x = self.call(X, training)
 
@@ -113,6 +113,20 @@ class Sequential(Layer):
             metric = float(self.metric.call(x, y))
 
         return loss, metric
+
+    def evaluate(self, X, y, batch_size=32, training=False):
+        num_step = X.shape[0] // batch_size
+        X, y = self.setup_data(X), self.setup_data(y)
+
+        losses, metrics = [], []
+        for i in range(num_step):
+            X_step, y_step = X[batch_size * i: batch_size *
+                               (i + 1)], y[batch_size * i: batch_size * (i + 1)]
+            loss, metric = self.forward(X_step, y_step)
+            losses.append(loss)
+            metrics.append(metric)
+
+        return mean(losses), mean(metrics)
 
     def backward(self, dout):
         for layers in reversed(self.layers):
@@ -134,7 +148,7 @@ class Sequential(Layer):
         self.optimizer.update(self.trainable_weights)
 
     def train_on_batch(self, batch_X, batch_y):
-        batch_loss, batch_metric = self.evaluate(
+        batch_loss, batch_metric = self.forward(
             batch_X, batch_y, training=True)
         self.cal_gradient()
         self.update()

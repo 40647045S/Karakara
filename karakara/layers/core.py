@@ -1,4 +1,5 @@
 from math import sqrt
+from numpy import prod
 from ..backend import np
 from ..engine.base_layer import Layer
 
@@ -31,7 +32,7 @@ class Dense(Layer):
                 assert self.input_shape == input_shape
 
             # assert input_shape
-
+            print(input_shape)
             self.kernel = self.add_weight(
                 shape=(input_shape[-1], self.units), std=self.weight_std)
             self.bias = self.add_weight(shape=(self.units, ), std=0)
@@ -133,3 +134,23 @@ class Add(Layer):
 
     def backward(self, dout):
         return dout
+
+
+class Flatten(Layer):
+    def __init__(self):
+        super().__init__()
+        self.input_shape = None
+
+    def build(self, input_shape):
+        self.output_shape = (prod(input_shape), )
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, inputs, **kwargs):
+        batch_size = inputs.shape[0]
+        self.input_shape = inputs.shape
+        return inputs.reshape(batch_size, -1)
+
+    def backward(self, dout):
+        return dout.reshape(self.input_shape)

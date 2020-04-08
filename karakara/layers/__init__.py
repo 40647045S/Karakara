@@ -3,3 +3,6 @@ from .core import Dropout
 from .core import Add
 from .core import Separate
 from .core import Same
+from .core import Flatten
+from .convolution import Conv2D
+from .convolution import MaxPooling2D
