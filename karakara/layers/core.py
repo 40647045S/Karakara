@@ -97,7 +97,7 @@ class Dropout(Layer):
 
 
 class BatchNormalization(Layer):
-    def __init__(self, momentum=0.9, running_mean=None, running_var=None, **kwargs):
+    def __init__(self, momentum=0.99, running_mean=None, running_var=None, **kwargs):
         super().__init__()
         self.gamma = None  # 1
         self.beta = None  # 0

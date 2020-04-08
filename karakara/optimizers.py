@@ -95,6 +95,7 @@ optimizer_table = {
     'sgd': SGD,
     'momentom': Momentom,
     'adam': Adam,
+    'rmsprop': RMSprop,
 }
 
 
