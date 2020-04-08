@@ -67,7 +67,7 @@ class Conv2D(Layer):
         out_w = 1 + int((W + 2 * self.pad - self.kernel_w) / self.stride)
 
         col = im2col(inputs, self.kernel_h,
-                     self.kernel_w, self.stride, self.pad)
+                     self.kernel_w, self.stride, self.stride, self.pad, self.pad)
         col_W = self.kernel.weight.reshape(self.filters, -1).T
 
         out = np.dot(col, col_W) + self.bias.weight
@@ -80,6 +80,8 @@ class Conv2D(Layer):
         return out
 
     def backward(self, dout):
+        _, _, h, w = self.x.shape
+
         dout = dout.transpose(0, 2, 3, 1).reshape(-1, self.filters)
 
         self.bias.gradient = np.sum(dout, axis=0)
@@ -89,7 +91,7 @@ class Conv2D(Layer):
 
         dcol = np.dot(dout, self.col_W.T)
         dx = col2im(dcol, self.x.shape, self.kernel_h,
-                    self.kernel_w, self.stride, self.pad)
+                    self.kernel_w, self.stride, self.stride, self.pad, self.pad)
 
         return dx
 
@@ -124,7 +126,8 @@ class MaxPooling2D(Layer):
         out_h = int(1 + (H - self.pool_h) / self.stride)
         out_w = int(1 + (W - self.pool_w) / self.stride)
 
-        col = im2col(inputs, self.pool_h, self.pool_w, self.stride, self.pad)
+        col = im2col(inputs, self.pool_h, self.pool_w,
+                     self.stride, self.stride, self.pad, self.pad)
         col = col.reshape(-1, self.pool_h * self.pool_w)
 
         arg_max = np.argmax(col, axis=1)
@@ -137,6 +140,8 @@ class MaxPooling2D(Layer):
         return out
 
     def backward(self, dout):
+        _, _, h, w = self.x.shape
+
         dout = dout.transpose(0, 2, 3, 1)
 
         pool_size = self.pool_h * self.pool_w
@@ -147,6 +152,6 @@ class MaxPooling2D(Layer):
 
         dcol = dmax.reshape(dmax.shape[0] * dmax.shape[1] * dmax.shape[2], -1)
         dx = col2im(dcol, self.x.shape, self.pool_h,
-                    self.pool_w, self.stride, self.pad)
+                    self.pool_w, self.stride, self.stride, self.pad, self.pad)
 
         return dx
