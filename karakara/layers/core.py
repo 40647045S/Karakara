@@ -60,13 +60,11 @@ class Dense(Layer):
     def compute_output_shape(self):
         return self.output_shape
 
-    @profile
     def call(self, inputs, **kwargs):
         self.x = inputs
         output = np.dot(inputs, self.kernel.weight) + self.bias.weight
         return output
 
-    @profile
     def backward(self, dout):
         dx = np.dot(dout, self.kernel.weight.T)
         self.kernel.gradient = np.dot(self.x.T, dout)
@@ -99,7 +97,7 @@ class Dropout(Layer):
 
 
 class BatchNormalization(Layer):
-    def __init__(self, axis=1, momentum=0.99, running_mean=None, running_var=None, **kwargs):
+    def __init__(self, axis=1, momentum=0.99, epison=0.0, **kwargs):
         super().__init__()
         self.axis = 1
         self.gamma = None  # 1
@@ -107,9 +105,10 @@ class BatchNormalization(Layer):
         self.momentum = momentum
         self.momentum_decay = 1 - momentum
         self.input_shape = None
+        self.epison = epison
 
-        self.running_mean = running_mean
-        self.running_var = running_var
+        self.running_mean = None
+        self.running_var = None
 
         self.batch_size = None
         self.xc = None
@@ -133,7 +132,6 @@ class BatchNormalization(Layer):
     def compute_output_shape(self):
         return self.output_shape
 
-    @profile
     def call(self, inputs, training=True, **kwargs):
         self.input_shape = inputs.shape
         # if x.ndim != 2:
@@ -145,7 +143,6 @@ class BatchNormalization(Layer):
 
         return out.reshape(*self.input_shape)
 
-    @profile
     def __forward(self, inputs, train_flg):
 
         x = inputs
@@ -156,7 +153,7 @@ class BatchNormalization(Layer):
             mu = x.mean(axis=axises, keepdims=True)
             xc = x - mu
             var = np.var(x, axis=axises, keepdims=True)
-            std = np.sqrt(var + 10e-7)
+            std = np.sqrt(var + self.epison)
 
             xn = (inputs - mu) / std
 
@@ -168,12 +165,11 @@ class BatchNormalization(Layer):
             self.running_var.weight = self.running_var.weight - (self.running_var.weight - var) * self.momentum_decay
         else:
             xc = x - self.running_mean.weight
-            xn = xc / ((np.sqrt(self.running_var.weight + 10e-7)))
+            xn = xc / ((np.sqrt(self.running_var.weight + self.epison)))
 
         out = self.gamma.weight * xn + self.beta.weight
         return out
 
-    @profile
     def backward(self, dout):
         # if dout.ndim != 2:
         #     N, C, H, W = dout.shape
@@ -184,7 +180,6 @@ class BatchNormalization(Layer):
         dx = dx.reshape(*self.input_shape)
         return dx
 
-    @profile
     def __backward(self, dout):
         axises = list(range(dout.ndim))
         axises.remove(self.axis)

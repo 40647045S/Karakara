@@ -121,7 +121,6 @@ class MaxPooling2D(Layer):
     def compute_output_shape(self):
         return self.output_shape
 
-    @profile
     def call(self, inputs, **kwargs):
         N, C, H, W = inputs.shape
         out_h = int(1 + (H - self.pool_h) / self.stride)
@@ -140,7 +139,6 @@ class MaxPooling2D(Layer):
 
         return out
 
-    @profile
     def backward(self, dout):
         _, _, h, w = self.x.shape
 
