@@ -10,8 +10,9 @@ A neural network library
 * 主要網路層
   * -[x] Dense
   * -[x] Dropout
-  * -[ ] BatchNormalization
-  * -[ ] CNN
+  * -[x] BatchNormalization
+  * -[x] Conv2D
+  * -[x] MaxPoolind2D
 * 激勵函數
   * -[x] Sigmoid
   * -[x] Tanh
@@ -20,6 +21,7 @@ A neural network library
 * 優化器
   * -[x] SGD
   * -[x] Momentum
+  * -[x] RMSProp
   * -[x] Adam
 * 特殊功能
   * -[x] GPU支援
