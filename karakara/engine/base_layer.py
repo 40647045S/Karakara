@@ -84,8 +84,8 @@ class Layer(object):
     def compute_output_shape(self):
         raise NotImplementedError
 
-    def __call__(self, x):
-        return self.call(x)
+    def __call__(self, x, **kwargs):
+        return self.call(x, **kwargs)
 
     def call(self, x, **kwargs):
         raise NotImplementedError

@@ -130,3 +130,6 @@ dmypy.json
 
 #kernprof
 *.lprof
+
+#mine
+gan_images/*

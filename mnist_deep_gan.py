@@ -5,7 +5,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 from karakara import config
-# config.GPU = True
+config.GPU = True
 import karakara.backend as K
 K.set_random_seed(1988)
 # K.set_floatx('float16')
