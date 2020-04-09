@@ -11,7 +11,7 @@ import karakara.backend as K
 
 from karakara.models import Sequential
 from karakara.layers import Dense, Dropout, BatchNormalization, Input
-from karakara.layers import Flatten, Conv2D, MaxPooling2D
+from karakara.layers import Flatten, Conv2D, MaxPooling2D, BatchNormalizationAll
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
 from karakara.optimizers import SGD, Momentom, Adam, RMSprop
 
@@ -30,24 +30,24 @@ def make_model():
     model = Sequential()
     model.add(Input(shape=input_shape))
     model.add(Conv2D(32, kernel_size=(3, 3), stride=1, pad='same'))
-    model.add(BatchNormalization())
+    model.add(BatchNormalizationAll())
     model.add(ReLU())
     model.add(Conv2D(32, kernel_size=(3, 3), stride=1, pad='same'))
-    model.add(BatchNormalization())
+    model.add(BatchNormalizationAll())
     model.add(ReLU())
     model.add(MaxPooling2D(2, 2, stride=2))
 
     model.add(Conv2D(64, kernel_size=(3, 3), stride=1, pad='same'))
-    model.add(BatchNormalization())
+    model.add(BatchNormalizationAll())
     model.add(ReLU())
     model.add(Conv2D(64, kernel_size=(3, 3), stride=1, pad='same'))
-    model.add(BatchNormalization())
+    model.add(BatchNormalizationAll())
     model.add(ReLU())
     model.add(MaxPooling2D(2, 2, stride=2))
 
     model.add(Flatten())
     model.add(Dense(512, kernel_initializer='He'))
-    model.add(BatchNormalization())
+    model.add(BatchNormalizationAll())
     model.add(ReLU())
     model.add(Dense(10, kernel_initializer='He'))
     model.add(Softmax())
