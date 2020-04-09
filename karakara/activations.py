@@ -54,14 +54,14 @@ class ReLU(BaseActivation):
         self.mask = None
 
     def call(self, inputs, **kwargs):
-        self.mask = (inputs <= 0)
+        self.mask = np.greater(inputs, 0).astype(float)
         output = inputs.copy()
-        output[self.mask] = 0
+        output = np.maximum(output, 0)
 
         return output
 
     def backward(self, dout):
-        dout[self.mask] = 0
+        dout *= self.mask
         dx = dout
 
         return dx
@@ -75,14 +75,16 @@ class LeakyReLU(BaseActivation):
         self.alpha = alpha
 
     def call(self, inputs, **kwargs):
-        self.mask = (inputs <= 0)
+        mask_p = np.greater_equal(inputs, 0).astype(float)
+        mask_n = np.less(inputs, 0).astype(float) * self.alpha
+        self.mask = mask_p + mask_n
         output = inputs.copy()
-        output[self.mask] *= self.alpha
+        output *= self.mask
 
         return output
 
     def backward(self, dout):
-        dout[self.mask] *= self.alpha
+        dout *= self.mask
         dx = dout
 
         return dx

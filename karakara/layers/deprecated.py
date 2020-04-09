@@ -10,6 +10,7 @@ class BatchNormalizationAll(Layer):
         self.gamma = None  # 1
         self.beta = None  # 0
         self.momentum = momentum
+        self.momentum_decay = 1 - momentum
         self.input_shape = None
 
         self.running_mean = running_mean
@@ -58,8 +59,8 @@ class BatchNormalizationAll(Layer):
             self.xc = xc
             self.xn = xn
             self.std = std
-            self.running_mean.weight = self.momentum * self.running_mean.weight + (1 - self.momentum) * mu
-            self.running_var.weight = self.momentum * self.running_var.weight + (1 - self.momentum) * var
+            self.running_mean.weight = self.running_mean.weight - (self.running_mean.weight - mu) * self.momentum_decay
+            self.running_var.weight = self.running_var.weight - (self.running_var.weight - var) * self.momentum_decay
         else:
             xc = x - self.running_mean.weight
             xn = xc / ((np.sqrt(self.running_var.weight + 10e-7)))

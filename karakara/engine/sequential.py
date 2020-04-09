@@ -110,11 +110,13 @@ class Sequential(Layer):
         X, y = self.setup_data(X), self.setup_data(y)
         x = self.call(X, training)
 
-        loss = float(self.lossLayer.call(x, y))
+        loss = self.lossLayer.call(x, y)
+        loss = float(loss)
 
         metric = None
         if self.metric:
-            metric = float(self.metric.call(x, y))
+            metric = self.metric.call(x, y)
+            metric = float(metric)
 
         return loss, metric
 
