@@ -46,7 +46,7 @@ class Conv2D(Layer):
             weight_std = cal_init_std('He', pre_node_nums)
 
             self.kernel = self.add_weight(
-                shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=0.08)
+                shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=weight_std)
             self.bias = self.add_weight(
                 shape=(self.filters, ), mean=0, initializer='constant')
 

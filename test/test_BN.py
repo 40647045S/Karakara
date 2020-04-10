@@ -11,7 +11,7 @@ import karakara.backend as K
 
 from karakara.models import Sequential
 from karakara.layers import Dense, Dropout, BatchNormalization, Input
-from karakara.layers import Flatten, Conv2D, MaxPooling2D
+from karakara.layers import Flatten, Conv2D, MaxPooling2D, BatchNormalization_v2
 from karakara.layers.deprecated import BatchNormalizationAll
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
 from karakara.optimizers import SGD, Momentom, Adam, RMSprop
@@ -23,10 +23,10 @@ from utils import make_mnist_data, plot_history, make_fasion_mnist_data, make_ci
 
 input_shape = (3, 32, 32)
 n_classes = 10
-epochs = 10
+epochs = 20
 batch_size = 32
 
-BN_LAYER = BatchNormalization
+BN_LAYER = BatchNormalization_v2
 
 
 def make_model():

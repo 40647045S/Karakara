@@ -43,8 +43,11 @@ class BatchNormalizationAll(Layer):
             x = x.reshape(N, -1)
 
         out = self.__forward(x, training)
+        out = out.reshape(*self.input_shape)
 
-        return out.reshape(*self.input_shape)
+        x = out[0].get()
+
+        return out
 
     def __forward(self, x, train_flg):
 

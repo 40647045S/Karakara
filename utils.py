@@ -63,7 +63,9 @@ def make_fasion_mnist_data(valid_ratio=0.2):
     return (X_train, y_train), (X_valid, y_valid), (X_test, y_test)
 
 
-def make_cifar10_data(valid_ratio=0.2):
+def make_cifar10_data(valid_ratio=0.2, image_data_format='channels_first'):
+    keras.backend.set_image_data_format(image_data_format)
+
     (X_train, y_train), (X_test, y_test) = cifar10.load_data()
 
     X_train = X_train
