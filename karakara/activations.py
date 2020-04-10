@@ -106,9 +106,12 @@ class Softmax(BaseActivation):
         return self.out
 
     def backward(self, dout):
-        fraction = np.maximum(self.out - self.out ** 2, self.epsilon)
-        dx = fraction * dout
-        return dx
+
+        delta = self.out * dout
+        sum_ = delta.sum(axis=delta.ndim - 1, keepdims=True)
+        delta -= self.out * sum_
+
+        return delta
 
 
 activation_table = {'sigmoid': Sigmoid, 'tanh': Tanh,

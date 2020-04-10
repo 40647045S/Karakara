@@ -153,6 +153,7 @@ class Sequential(Layer):
     def update(self):
         self.optimizer.update(self.trainable_weights)
 
+    @profile
     def train_on_batch(self, batch_X, batch_y):
         batch_loss, batch_metric = self.forward(
             batch_X, batch_y, training=True)

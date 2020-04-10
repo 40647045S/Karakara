@@ -62,14 +62,14 @@ def make_model():
 
 
 def main():
-    (X_train, y_train), (X_valid, y_valid), (X_test, y_test) = make_cifar10_data(0.1)
+    (X_train, y_train), (X_valid, y_valid), (X_test, y_test) = make_cifar10_data(0.0)
     print(X_train.shape)
     print(X_test.shape)
 
     model = make_model()
 
     history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs,
-                        validation_data=(X_valid, y_valid))
+                        validation_data=(X_test, y_test))
 
     test_loss, test_acc = model.evaluate(X_test, y_test)
     print()
