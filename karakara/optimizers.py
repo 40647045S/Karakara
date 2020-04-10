@@ -75,8 +75,7 @@ class Adam(Optimizer):
     def update(self, weights):
 
         self.iter += 1
-        lr_t = self.lr * np.sqrt(1.0 - self.beta_2 **
-                                 self.iter) / (1.0 - self.beta_1**self.iter)
+        lr_t = self.lr * np.sqrt(1.0 - self.beta_2 ** self.iter) / (1.0 - self.beta_1**self.iter)
 
         for weight in self.get_trainable(weights):
             if not weight in self.v:

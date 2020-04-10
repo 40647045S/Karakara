@@ -186,25 +186,30 @@ class Sequential(Layer):
                 print(f'Epoch {n_epoch+1}/{epochs}')
             order = np.random.permutation(num_of_samples)
 
-            batch_losses, batch_metrics = [], []
+            avg_batch_loss, avg_batch_metrics = 0, 0
             pbar = range(0, num_of_samples, batch_size)
             if verbose:
-                pbar = tqdm(pbar, ncols=120, ascii=True, unit='batches')
-            for n_batch in pbar:
+                pbar = tqdm(pbar, ncols=100, ascii='.>>>>>>>>>>>>=', unit='bs',
+                            bar_format='{desc}[{bar}] - ETA: {remaining_s:3.1f}s - {rate_fmt}{postfix}', leave=False)
+            for index, n_batch in enumerate(pbar):
                 data_slice = order[n_batch:n_batch + batch_size]
                 X_train, y_train = X[data_slice], y[data_slice]
                 batch_loss, batch_metric = self.train_on_batch(
                     X_train, y_train)
-                batch_losses.append(batch_loss)
-                batch_metrics.append(batch_metric)
+                avg_batch_loss = (index * avg_batch_loss + batch_loss) / (index + 1)
+                avg_batch_metrics = (index * avg_batch_metrics + batch_metric) / (index + 1)
 
                 if verbose and n_batch % 10 == 0:
-                    pbar.set_description(f"{n_batch}/{num_of_samples}")
-                    pbar.set_postfix(loss=f'{batch_loss:.4f}',
-                                     metric=f'{batch_metric:.4f}')
+                    pbar.set_description(f"{n_batch:6d}/{num_of_samples}")
+                    pbar.set_postfix(loss=f'{avg_batch_loss:.4f}',
+                                     metric=f'{avg_batch_metrics:.4f}')
 
-            train_loss = mean(batch_losses)
-            train_metric = mean(batch_metrics)
+            pbar.bar_format = '{desc}[{bar}] - USE: {elapsed_s:3.1f}s - {rate_fmt}{postfix}'
+            pbar.display()
+            print()
+
+            train_loss = avg_batch_loss
+            train_metric = avg_batch_metrics
             valid_loss, valid_metric = self.evaluate(X_valid, y_valid, batch_size=batch_size)
 
             self.history['loss'].append(train_loss)

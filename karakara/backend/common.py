@@ -1,5 +1,5 @@
 _FLOATX = 'float32'
-_EPSILON = 1e-7
+_EPSILON = 1e-6
 
 
 def epsilon():

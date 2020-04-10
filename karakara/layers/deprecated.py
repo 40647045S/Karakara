@@ -54,7 +54,7 @@ class BatchNormalizationAll(Layer):
         if train_flg:
             mu = x.mean(axis=0)
             xc = x - mu
-            var = np.var(x, axis=0)
+            var = np.mean(xc**2, axis=0)
             std = np.sqrt(var + 10e-7)
             xn = xc / std
 

@@ -54,7 +54,7 @@ class BatchNormalization(Layer):
             axises = tuple(axises)
             mu = x.mean(axis=axises, keepdims=True)
             xc = x - mu
-            var = np.var(x, axis=axises, keepdims=True)
+            var = np.mean(xc**2, axis=axises, keepdims=True)
             std = np.sqrt(var + self.epison)
 
             xn = (inputs - mu) / std
@@ -88,18 +88,18 @@ class BatchNormalization(Layer):
         # dx_normed = self.gamma.weight * dout
 
         dx_normed = self.gamma.weight * dout
-        dx = 1 / self.batch_size / self.std * (self.batch_size * dx_normed -
-                                               dx_normed.sum(axis=0) - self.x_normed * (dx_normed * self.x_normed).sum(axis=0))
+        # dx = 1 / self.batch_size / self.std * (self.batch_size * dx_normed -
+        #                                        dx_normed.sum(axis=0) - self.x_normed * (dx_normed * self.x_normed).sum(axis=0))
 
         dxc = dx_normed / self.std + \
             self.x_centered / self.batch_size * - \
             np.sum((dx_normed * self.x_centered), axis=0) / (self.std * self.std * self.std)
-        dx2 = dxc - np.sum(dxc, axis=0) / self.batch_size
+        dx = dxc - np.sum(dxc, axis=0) / self.batch_size
 
-        if not np.all(np.abs(dx - dx2) < 0.01):
-            print('dx1:', dx[0, 0])
-            print('dx2:', dx2[0, 0])
-            assert False
+        # if not np.all(np.abs(dx - dx2) < 0.01):
+        #     print('dx1:', dx[0, 0])
+        #     print('dx2:', dx2[0, 0])
+        #     assert False
 
         self.gamma.gradient = dgamma
         self.beta.gradient = dbeta
@@ -160,16 +160,13 @@ class BatchNormalization_v2(Layer):
         if train_flg:
             mu = x.mean(axis=1, keepdims=True)
             xc = x - mu
-            var = np.var(x, axis=1, keepdims=True)
+            var = np.mean(xc**2, axis=1, keepdims=True)
             std = np.sqrt(var + self.epison)
             xn = xc / std
 
-            self.batch_size = x.shape[1]
-            self.xc = xc
-            self.xn = xn
-            self.std = std
-            self.running_mean.weight = self.running_mean.weight - (self.running_mean.weight - mu) * self.momentum_decay
-            self.running_var.weight = self.running_var.weight - (self.running_var.weight - var) * self.momentum_decay
+            self.cahes = (x.shape[1], xc, xn, std)
+            self.running_mean.weight -= (self.running_mean.weight - mu) * self.momentum_decay
+            self.running_var.weight -= (self.running_var.weight - var) * self.momentum_decay
         else:
             xc = x - self.running_mean.weight
             xn = xc / ((np.sqrt(self.running_var.weight + self.epison)))
@@ -190,24 +187,26 @@ class BatchNormalization_v2(Layer):
         return dx
 
     def __backward(self, dout):
-        dbeta = dout.sum(axis=1, keepdims=True)
-        dgamma = np.sum(self.xn * dout, axis=1, keepdims=True)
-        dxn = self.gamma.weight * dout
-        dxc = dxn / self.std
-        dstd = -np.sum((dxn * self.xc) / (self.std * self.std), axis=1, keepdims=True)
-        dvar = 0.5 * dstd / self.std
-        dxc += (2.0 / self.batch_size) * self.xc * dvar
-        dmu = np.sum(dxc, axis=1, keepdims=True)
-        dx = dxc - dmu / self.batch_size
+
+        N, xc, xn, std = self.cahes
+
+        np.sum(dout, axis=1, keepdims=True, out=self.beta.gradient)
+        np.sum(xn * dout, axis=1, keepdims=True, out=self.gamma.gradient)
+
+        dxn2 = self.gamma.weight * dout
+        dxc2 = dxn2 / std + xc / N * - \
+            np.sum((dxn2 * xc), axis=1, keepdims=True) / (std * std * std)
+        dx = dxc2 - np.sum(dxc2, axis=1, keepdims=True) / N
 
         # dxn2 = self.gamma.weight * dout
-        # dxc2 = dxn2 / self.std + self.xc / self.batch_size * - np.sum((dxn2 * self.xc), axis=0) / (self.std * self.std * self.std)
-        # dx2 = dxc2 - np.sum(dxc2, axis=0) / self.batch_size
+        # dxc2 = dxn2 / self.std + self.xc / self.batch_size * - \
+        #     np.sum((dxn2 * self.xc), axis=1, keepdims=True) / (self.std * self.std * self.std)
+        # dx = dxc2 - np.sum(dxc2, axis=1, keepdims=True) / self.batch_size
 
         # assert np.allclose(dx, dx2)
 
-        self.gamma.gradient = dgamma
-        self.beta.gradient = dbeta
+        # self.gamma.gradient = dgamma
+        # self.beta.gradient = dbeta
         # print(self.gamma.weight.shape, self.gamma.gradient.shape)
 
         return dx

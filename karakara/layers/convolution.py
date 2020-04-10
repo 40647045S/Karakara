@@ -84,7 +84,7 @@ class Conv2D(Layer):
 
         dout = dout.transpose(0, 2, 3, 1).reshape(-1, self.filters)
 
-        self.bias.gradient = np.sum(dout, axis=0)
+        np.sum(dout, axis=0, out=self.bias.gradient)
         self.kernel.gradient = np.dot(self.col.T, dout)
         self.kernel.gradient = self.kernel.gradient.transpose(
             1, 0).reshape(self.kernel.weight.shape)

@@ -67,8 +67,8 @@ class Dense(Layer):
 
     def backward(self, dout):
         dx = np.dot(dout, self.kernel.weight.T)
-        self.kernel.gradient = np.dot(self.x.T, dout)
-        self.bias.gradient = np.sum(dout, axis=0)
+        np.dot(self.x.T, dout, out=self.kernel.gradient)
+        np.sum(dout, axis=0, out=self.bias.gradient)
 
         return dx
 

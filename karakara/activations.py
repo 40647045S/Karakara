@@ -110,6 +110,7 @@ class Softmax(BaseActivation):
         delta = self.out * dout
         sum_ = delta.sum(axis=delta.ndim - 1, keepdims=True)
         delta -= self.out * sum_
+        # dx = self.out * (dout - sum_)
 
         return delta
 

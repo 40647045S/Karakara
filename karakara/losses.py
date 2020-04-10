@@ -1,6 +1,6 @@
 from .backend import np, epsilon
 from .engine.base_layer import Layer
-from .utils.math_utils import categorical_crossentropy_error
+from .utils.math_utils import softmax, categorical_crossentropy_error
 
 
 class BaseLossLayer(Layer):
@@ -24,7 +24,7 @@ class CategoricalCrossEntropy(BaseLossLayer):
         self.epsilon = epsilon
         self.output_shape = None
 
-    def call(self, inputs, labels):
+    def call(self, inputs, labels, **kwargs):
         self.pred = inputs
         self.label = labels
         self.loss = categorical_crossentropy_error(self.pred, self.label)
@@ -33,7 +33,7 @@ class CategoricalCrossEntropy(BaseLossLayer):
 
     def backward(self, dout=1):
         batch_size = self.label.shape[0]
-        dx = -self.label / np.maximum(self.pred, self.epsilon)
+        dx = -1 * self.label / np.maximum(self.pred, self.epsilon)
         dx = dx / batch_size
 
         return dx
@@ -48,7 +48,7 @@ class MeanSquareError(BaseLossLayer):
         self.loss = None
         self.output_shape = None
 
-    def call(self, inputs, labels):
+    def call(self, inputs, labels, **kwargs):
         self.pred = inputs
         self.label = labels.reshape(-1, 1)
         batch_size = self.label.shape[0]
@@ -73,7 +73,7 @@ class BinaryCrossEntropy(BaseLossLayer):
         self.loss = None
         self.output_shape = None
 
-    def call(self, inputs, labels):
+    def call(self, inputs, labels, **kwargs):
         self.pred = inputs
         self.label = labels.reshape(-1, 1)
         batch_size = self.label.shape[0]
@@ -87,6 +87,32 @@ class BinaryCrossEntropy(BaseLossLayer):
         dx = - (np.divide(self.label, self.pred + self.epsilon) -
                 np.divide(1 - self.label, 1 - self.pred + self.epsilon))
         dx = dx / batch_size
+
+        return dx
+
+
+class SoftmaxWithLoss(BaseLossLayer):
+    def __init__(self):
+        super().__init__()
+        self.loss = None
+        self.y = None
+        self.t = None
+
+    def forward(self, x, t, **kwargs):
+        self.t = t
+        self.y = softmax(x)
+        self.loss = categorical_crossentropy_error(self.y, self.t)
+
+        return self.loss
+
+    def backward(self, dout=1):
+        batch_size = self.t.shape[0]
+        if self.t.size == self.y.size:
+            dx = (self.y - self.t) / batch_size
+        else:
+            dx = self.y.copy()
+            dx[np.arange(batch_size), self.t] -= 1
+            dx = dx / batch_size
 
         return dx
 
