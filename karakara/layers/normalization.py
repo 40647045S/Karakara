@@ -196,4 +196,6 @@ class BatchNormalization_v2(Layer):
         # dxc = (dxn - xn / N * np.sum((dxn * xn), axis=1, keepdims=True)) * inv_std
         # dx = dxc - np.sum(dxc, axis=1, keepdims=True) / N
 
-        return bn_backward(self.gamma.weight, dout, xn, N, inv_std)
+        dx = bn_backward(self.gamma.weight, dout, xn, N, inv_std)
+
+        return dx

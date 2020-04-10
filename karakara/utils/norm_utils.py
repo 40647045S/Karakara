@@ -1,5 +1,5 @@
 import numpy
-from ..backend import np
+from ..backend import np, setup_data
 
 
 def update_mean_var(mean, var, decay, adjust, running_mean, running_var):
@@ -24,10 +24,11 @@ def bn_backward(gamma, dout, xn, N, inv_std):
     if isinstance(gamma, numpy.ndarray):
         dxc = (dxn - xn / N * np.sum((dxn * xn), axis=1, keepdims=True)) * inv_std
     else:
+        N = setup_data(N)
         dxc = np.zeros_like(dout)
         sss = np.sum((dxn * xn), axis=1, keepdims=True)
         np.ElementwiseKernel(
-            'P dxn, P xn, P N, P sss, P inv_std',
+            'P dxn, T xn, P N, P sss, T inv_std',
             'P dxc',
             '''
                 dxc = (dxn - xn / N * sss) * inv_std

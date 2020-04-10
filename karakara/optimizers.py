@@ -1,4 +1,4 @@
-from .backend import np, epsilon
+from .backend import np, epsilon, setup_data
 from .utils.optimizer_utils import adam_update
 
 
@@ -65,12 +65,13 @@ class RMSprop(Optimizer):
 
 class Adam(Optimizer):
 
-    def __init__(self, lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=epsilon()):
+    def __init__(self, lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=epsilon(), decay=0.):
         self.lr = lr
         self.beta_1 = beta_1
         self.beta_2 = beta_2
         self.cbeta_1 = 1 - beta_1
         self.cbeta_2 = 1 - beta_2
+        self.decay = (1 - decay)
         self.iter = 0
         self.m = {}
         self.v = {}
@@ -79,7 +80,9 @@ class Adam(Optimizer):
     def update(self, weights):
 
         self.iter += 1
-        lr_t = self.lr * np.sqrt(1.0 - self.beta_2 ** self.iter) / (1.0 - self.beta_1**self.iter)
+        # print(lr_t)
+        lr_t = (self.lr * (self.decay ** self.iter)) * \
+            np.sqrt(1.0 - self.beta_2 ** self.iter) / (1.0 - self.beta_1**self.iter)
 
         for weight in self.get_trainable(weights):
             if not weight in self.v:
@@ -89,6 +92,7 @@ class Adam(Optimizer):
             param_m = self.m[weight]
             grad = weight.regularized_grad()
 
+            # print(weight.name, grad.dtype)
             adam_update(grad, self.cbeta_1, self.cbeta_2, self.epsilon,
                         lr_t, weight.weight, param_m, param_v)
 

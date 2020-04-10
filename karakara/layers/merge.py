@@ -33,7 +33,9 @@ class Separate(Layer):
         return inputs
 
     def backward(self, dout):
-        return np.sum(np.array(dout), axis=0)
+        dx = sum(dout)
+        # print(dx.dtype)
+        return dx
 
 
 class Add(Layer):

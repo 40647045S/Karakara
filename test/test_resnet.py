@@ -20,31 +20,38 @@ from utils import plot_history, make_cifar10_data
 
 input_shape = (3, 32, 32)
 n_classes = 10
-epochs = 50
-batch_size = 64
+epochs = 200
+batch_size = 32
 
 
 def cnn_seq(num_filters=16, kernel_size=3, strides=1,
             activation=ReLU, batch_normalization=True, conv_first=True):
     seq = Sequential()
-    seq.add(Conv2D(num_filters, kernel_size=kernel_size, stride=strides, padding='same'))
+    seq.add(Conv2D(num_filters, kernel_size=kernel_size, stride=strides, padding='same', kernel_regularizer=l2(1e-4)))
     if batch_normalization:
         seq.add(BatchNormalization_v2())
     seq.add(activation())
-    seq.add(Conv2D(num_filters, kernel_size=kernel_size, stride=strides, padding='same'))
+    seq.add(Conv2D(num_filters, kernel_size=kernel_size, stride=1, padding='same', kernel_regularizer=l2(1e-4)))
     if batch_normalization:
         seq.add(BatchNormalization_v2())
-    seq.add(activation())
 
     return seq
 
 
 def add_residual_block(model, num_filters=16, kernel_size=3, strides=1,
-                       activation=ReLU, batch_normalization=True, conv_first=True):
+                       activation=ReLU, cnn_shortcut=False, batch_normalization=True, conv_first=True):
+
+    if cnn_shortcut:
+        shortcut = Conv2D(num_filters, kernel_size=kernel_size, stride=strides, padding='same')
+    else:
+        shortcut = Same()
+
+    cnn_road = cnn_seq(num_filters, kernel_size, strides, activation, batch_normalization, conv_first)
 
     model.add(Separate())
-    model.add([Same(), cnn_seq(num_filters, kernel_size, strides, activation, batch_normalization, conv_first)])
+    model.add([shortcut, cnn_road])
     model.add(Add())
+    model.add(ReLU())
 
     return model
 
@@ -53,32 +60,28 @@ def make_model():
     model = Sequential()
     model.add(Input(shape=input_shape))
 
-    model.add(Conv2D(32, kernel_size=3, stride=1, padding='same'))
+    model.add(Conv2D(16, kernel_size=3, stride=1, padding='same', kernel_regularizer=l2(1e-4)))
+    model.add(BatchNormalization_v2())
     model.add(ReLU())
-    model.add(MaxPooling2D(2, 2, stride=2))
 
-    add_residual_block(model, num_filters=32, batch_normalization=False)
-    add_residual_block(model, num_filters=32, batch_normalization=False)
+    add_residual_block(model, num_filters=16)
+    add_residual_block(model, num_filters=16)
+    add_residual_block(model, num_filters=16)
 
-    model.add(Conv2D(64, kernel_size=3, stride=1, padding='same'))
-    model.add(ReLU())
-    model.add(MaxPooling2D(2, 2, stride=2))
+    add_residual_block(model, num_filters=32, strides=2, cnn_shortcut=True)
+    add_residual_block(model, num_filters=32)
+    add_residual_block(model, num_filters=32)
 
-    add_residual_block(model, 64, batch_normalization=False)
-    add_residual_block(model, 64, batch_normalization=False)
-
-    # model.add(Conv2D(64, kernel_size=3, stride=1, padding='same'))
-    # model.add(ReLU())
-    model.add(MaxPooling2D(2, 2, stride=2))
+    add_residual_block(model, num_filters=64, strides=2, cnn_shortcut=True)
+    add_residual_block(model, num_filters=64)
+    add_residual_block(model, num_filters=64)
 
     model.add(Flatten())
-    model.add(Dense(512, kernel_initializer='He'))
-    model.add(ReLU())
     model.add(Dense(10, kernel_initializer='He'))
     model.add(Softmax())
 
     model.summary()
-    model.compile(Adam(), 'categorical_crossentropy', 'accuracy')
+    model.compile(Adam(decay=3e-5), 'categorical_crossentropy', 'accuracy')
 
     return model
 

@@ -2,6 +2,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import time
+import math
 import cupy as cp
 
 
@@ -12,14 +13,9 @@ def main():
 
     start_time = time.time()
 
-    for _ in range(20000):
-        cp.ElementwiseKernel('P a, P b',
-                             'P c',
-                             """
-        c = a + b;
-        """,
-                             'qq')(a, b, c)
-        # c = a + b
+    for i in range(1, 1250 * 50):
+
+        print(i, 0.001 * (1 - 3e-5)**i)
 
     end_time = time.time()
     print(f'Use time: {end_time - start_time}')
