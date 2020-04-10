@@ -25,7 +25,7 @@ class Input(Layer):
 
 class Dense(Layer):
 
-    def __init__(self, units, input_shape=None, kernel_initializer='Xavier', **kwargs):
+    def __init__(self, units, input_shape=None, kernel_initializer='Xavier', kernel_regularizer=None, **kwargs):
         super().__init__(**kwargs)
         self.units = units
         self.input_shape = None
@@ -34,6 +34,7 @@ class Dense(Layer):
                 input_shape, (tuple, list)) else (input_shape, )
 
         self.kernel_initializer = kernel_initializer
+        self.kernel_regularizer = kernel_regularizer
 
     def build(self, input_shape, pre_node_nums, **kwargs):
         if not self.built:
@@ -47,8 +48,9 @@ class Dense(Layer):
             weight_std = cal_init_std(self.kernel_initializer, pre_node_nums)
 
             # assert input_shape
+            print('r', self.kernel_regularizer)
             self.kernel = self.add_weight(
-                shape=(input_shape[-1], self.units), std=weight_std)
+                shape=(input_shape[-1], self.units), std=weight_std, regularizer=self.kernel_regularizer)
             self.bias = self.add_weight(
                 shape=(self.units, ), mean=0, initializer='constant')
 

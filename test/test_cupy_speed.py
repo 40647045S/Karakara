@@ -6,13 +6,15 @@ import cupy as cp
 
 
 def main():
-    a = cp.random.randn(128, 32, 32, 32).astype('float32')
+    a = cp.random.randn(2000000, 1).astype('float32')
+    b = cp.array(0.02).astype('float16')
+    c = 0.02
     # b = cp.random.randn(200, 100000).astype('float32')
 
     start_time = time.time()
 
-    for _ in range(10000):
-        x = cp.mean(a, axis=(0, 2, 3))
+    for _ in range(20000):
+        x = cp.square(a)
 
     end_time = time.time()
     print(f'Use time: {end_time - start_time}')

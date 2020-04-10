@@ -9,7 +9,7 @@ from ..utils.math_utils import cal_init_std
 
 
 class Conv2D(Layer):
-    def __init__(self, filters, kernel_size, stride=1, padding='valid', input_shape=None, **kwargs):
+    def __init__(self, filters, kernel_size, stride=1, padding='valid', kernel_regularizer=None, input_shape=None, **kwargs):
         super().__init__(**kwargs)
 
         self.filters = filters
@@ -24,6 +24,8 @@ class Conv2D(Layer):
             self.pad = 0
         elif padding == 'same':
             self.pad = kernel_size[0] // 2
+
+        self.kernel_regularizer = kernel_regularizer
 
         self.input_shape = input_shape
 
@@ -46,7 +48,7 @@ class Conv2D(Layer):
             weight_std = cal_init_std('He', pre_node_nums)
 
             self.kernel = self.add_weight(
-                shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=weight_std)
+                shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=weight_std, regularizer=self.kernel_regularizer)
             self.bias = self.add_weight(
                 shape=(self.filters, ), mean=0, initializer='constant')
 

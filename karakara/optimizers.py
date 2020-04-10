@@ -17,7 +17,7 @@ class SGD(Optimizer):
 
     def update(self, weights):
         for weight in self.get_trainable(weights):
-            weight.weight -= self.lr * weight.gradient
+            weight.weight -= self.lr * weight.regularized_grad()
 
 
 class Momentom(Optimizer):
@@ -33,7 +33,7 @@ class Momentom(Optimizer):
                 self.v[weight] = np.zeros_like(weight.weight)
             # param_v = self.v[weight]
             self.v[weight] = self.momentum * \
-                self.v[weight] - self.lr * weight.gradient
+                self.v[weight] - self.lr * weight.regularized_grad()
             weight.weight += self.v[weight]
 
 
@@ -55,10 +55,11 @@ class RMSprop(Optimizer):
             if not weight in self.h:
                 self.h[weight] = np.zeros_like(weight.weight)
 
+            grad = weight.regularized_grad()
             param_h = self.h[weight]
-            param_h = self.rho * param_h + (1 - self.rho) * weight.gradient**2
+            param_h = self.rho * param_h + (1 - self.rho) * grad**2
 
-            weight.weight -= self.current_lr * weight.gradient / (np.sqrt(param_h) + self.epsilon)
+            weight.weight -= self.current_lr * grad / (np.sqrt(param_h) + self.epsilon)
 
 
 class Adam(Optimizer):
@@ -84,8 +85,9 @@ class Adam(Optimizer):
             param_v = self.v[weight]
             param_m = self.m[weight]
 
-            param_m += (1 - self.beta_1) * (weight.gradient - param_m)
-            param_v += (1 - self.beta_2) * (weight.gradient**2 - param_v)
+            grad = weight.regularized_grad()
+            param_m += (1 - self.beta_1) * (grad - param_m)
+            param_v += (1 - self.beta_2) * (grad**2 - param_v)
 
             weight.weight -= lr_t * param_m / (np.sqrt(param_v) + self.epsilon)
 

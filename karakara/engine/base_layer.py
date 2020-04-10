@@ -4,11 +4,12 @@ from ..utils.generic_utils import naming_system
 
 class Weight:
 
-    def __init__(self, weight, trainable=True, name=None):
+    def __init__(self, weight, trainable=True, name=None, regularizer=None):
         self.weight = weight
         self.gradient = np.zeros_like(weight)
         self.trainable = trainable
         self.name = name
+        self.regularizer = regularizer
 
     def get_params_count(self):
         return self.weight.size
@@ -16,6 +17,12 @@ class Weight:
     def to_gpu(self, device=0):
         self.weight = to_gpu(self.weight, device=device)
         self.gradient = to_gpu(self.gradient, device=device)
+
+    def regularized_grad(self):
+        gradient = self.gradient
+        if self.regularizer is not None:
+            gradient += self.regularizer.cal_grad(self.weight)
+        return gradient
 
 
 class Layer(object):
@@ -38,7 +45,7 @@ class Layer(object):
         for trainable_weight in self.trainable_weights:
             trainable_weight.trainable = new_trainable
 
-    def add_weight(self, shape, mean=0, std=0, initializer='normal', trainable=True):
+    def add_weight(self, shape, mean=0, std=0, initializer='normal', regularizer=None, trainable=True):
         if initializer == 'normal':
             value = setup_data(std * np.random.randn(*shape) + mean)
         elif initializer == 'uniform':
@@ -48,7 +55,10 @@ class Layer(object):
         else:
             raise ValueError(f'Unknow initializer: {initializer}')
 
-        weight = Weight(value, name=self.name)
+        weight = Weight(value, name=self.name, regularizer=regularizer)
+
+        # if regularizer is not None:
+        # self.add_loss(regularizer(weight))
 
         if trainable:
             self.trainable_weights.append(weight)
