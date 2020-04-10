@@ -36,7 +36,7 @@ class Dense(Layer):
         self.kernel_initializer = kernel_initializer
         self.kernel_regularizer = kernel_regularizer
 
-    def build(self, input_shape, pre_node_nums, **kwargs):
+    def build(self, input_shape, **kwargs):
         if not self.built:
             if not input_shape:
                 input_shape = self.input_shape
@@ -56,8 +56,6 @@ class Dense(Layer):
 
             self.output_shape = (input_shape[:-1]) + (self.units, )
             self.built = True
-
-            return self.units
 
     def compute_output_shape(self):
         return self.output_shape

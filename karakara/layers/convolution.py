@@ -33,7 +33,7 @@ class Conv2D(Layer):
         self.col = None
         self.col_W = None
 
-    def build(self, input_shape, pre_node_nums, **kwargs):
+    def build(self, input_shape, **kwargs):
         if not self.built:
             if not input_shape:
                 input_shape = self.input_shape
@@ -57,8 +57,6 @@ class Conv2D(Layer):
 
             self.output_shape = (self.filters, out_h, out_w)
             self.built = True
-
-            return self.channel * self.kernel_h * self.kernel_w
 
     def compute_output_shape(self):
         return self.output_shape

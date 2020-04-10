@@ -19,16 +19,16 @@ from utils import plot_history, make_mnist_data
 
 input_shape = (784, )
 n_classes = 10
-epochs = 5
+epochs = 20
 batch_size = 128
 
 
 def make_model():
     model = Sequential()
     model.add(Input(shape=input_shape))
-    model.add(Dense(1024, kernel_regularizer=l2(0.01)))
+    model.add(Dense(512))
     model.add(LeakyReLU(0.2))
-    model.add(Dense(512, kernel_regularizer=l2(0.01)))
+    model.add(Dense(512))
     model.add(LeakyReLU(0.2))
     model.add(Dense(10))
     model.add(Softmax())

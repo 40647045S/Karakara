@@ -21,9 +21,22 @@ class Sequential(Layer):
         self.lossLayer = None
         self.optimizer = None
         self.metric = None
-        self.pre_node_nums = None
 
-    def build(self, input_shape, **kwargs):
+    def build(self, input_shape=None, **kwargs):
+        if not self.built:
+            self.output_shape = input_shape
+            for layers in self.layers:
+                output_shapes = []
+                for layer in layers:
+                    layer.build(self.output_shape)
+                    self.trainable_weights.extend(layer.get_trainable_weights())
+                    self.non_trainable_weights.extend(layer.get_non_trainable_weights())
+                    output_shapes.append(layer.compute_output_shape())
+
+                self.output_shape = output_shapes
+                if len(output_shapes) == 1:
+                    self.output_shape = self.output_shape[0]
+
         self.built = True
 
     def compute_output_shape(self):
@@ -34,23 +47,9 @@ class Sequential(Layer):
             layers = [layers]
 
         self.layers.append(layers)
-        output_shapes = []
-
-        for layer in layers:
-            pre_node_nums = layer.build(
-                self.output_shape, pre_node_nums=self.pre_node_nums)
-            if pre_node_nums:
-                self.pre_node_nums = pre_node_nums
-            self.trainable_weights.extend(layer.get_trainable_weights())
-            self.non_trainable_weights.extend(
-                layer.get_non_trainable_weights())
-            output_shapes.append(layer.compute_output_shape())
-
-        self.output_shape = output_shapes
-        if len(output_shapes) == 1:
-            self.output_shape = self.output_shape[0]
 
     def summary(self):
+        self.build()
         print("_________________________________________________________________")
         print("Layer (type)                 Output Shape              Param #   ")
         print("=================================================================")
@@ -81,6 +80,7 @@ class Sequential(Layer):
             return thring
 
     def compile(self, optimizer, loss, metric=None):
+        self.build()
         self.optimizer = optimizers.get(optimizer)
         self.lossLayer = losses.get(loss)
         self.metric = metrics.get(metric) if metric else None

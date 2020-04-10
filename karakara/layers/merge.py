@@ -53,7 +53,7 @@ class Add(Layer):
         return self.output_shape
 
     def call(self, inputs, **kwargs):
-        return np.sum(np.array(inputs), axis=0)
+        return sum(inputs)
 
     def backward(self, dout):
         return dout
