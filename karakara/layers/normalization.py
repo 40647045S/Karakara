@@ -1,6 +1,6 @@
 from ..backend import np
 from ..engine.base_layer import Layer
-from ..utils.norm_utils import update_mean_var
+from ..utils.norm_utils import update_mean_var, bn_backward
 
 
 class BatchNormalization(Layer):
@@ -192,8 +192,8 @@ class BatchNormalization_v2(Layer):
         np.sum(dout, axis=1, keepdims=True, out=self.beta.gradient)
         np.sum(xn * dout, axis=1, keepdims=True, out=self.gamma.gradient)
 
-        dxn = self.gamma.weight * dout
-        dxc = (dxn - xn / N * np.sum((dxn * xn), axis=1, keepdims=True)) * inv_std
-        dx = dxc - np.sum(dxc, axis=1, keepdims=True) / N
+        # dxn = self.gamma.weight * dout
+        # dxc = (dxn - xn / N * np.sum((dxn * xn), axis=1, keepdims=True)) * inv_std
+        # dx = dxc - np.sum(dxc, axis=1, keepdims=True) / N
 
-        return dx
+        return bn_backward(self.gamma.weight, dout, xn, N, inv_std)

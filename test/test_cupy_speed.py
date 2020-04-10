@@ -6,15 +6,20 @@ import cupy as cp
 
 
 def main():
-    a = cp.random.randn(2000000, 1).astype('float32')
-    b = cp.array(0.02).astype('float16')
-    c = 0.02
-    # b = cp.random.randn(200, 100000).astype('float32')
+    a = cp.random.randn(2000, 2000).astype('float32')
+    b = cp.random.randn(2000, 1).astype('float32')
+    c = cp.random.randn(2000, 2000).astype('float32')
 
     start_time = time.time()
 
     for _ in range(20000):
-        x = a ** 5
+        cp.ElementwiseKernel('P a, P b',
+                             'P c',
+                             """
+        c = a + b;
+        """,
+                             'qq')(a, b, c)
+        # c = a + b
 
     end_time = time.time()
     print(f'Use time: {end_time - start_time}')

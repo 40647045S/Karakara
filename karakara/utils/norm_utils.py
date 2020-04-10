@@ -17,3 +17,22 @@ def update_mean_var(mean, var, decay, adjust, running_mean, running_var):
             'update_mean_var'
         )(mean, var, decay, adjust,
           running_mean, running_var)
+
+
+def bn_backward(gamma, dout, xn, N, inv_std):
+    dxn = gamma * dout
+    if isinstance(gamma, numpy.ndarray):
+        dxc = (dxn - xn / N * np.sum((dxn * xn), axis=1, keepdims=True)) * inv_std
+    else:
+        dxc = np.zeros_like(dout)
+        sss = np.sum((dxn * xn), axis=1, keepdims=True)
+        np.ElementwiseKernel(
+            'P dxn, P xn, P N, P sss, P inv_std',
+            'P dxc',
+            '''
+                dxc = (dxn - xn / N * sss) * inv_std
+                ''',
+            'bn_backward'
+        )(dxn, xn, N, sss, inv_std, dxc)
+
+    return dxc - np.sum(dxc, axis=1, keepdims=True) / N
