@@ -91,15 +91,29 @@ def make_cifar10_data(valid_ratio=0.2, image_data_format='channels_first'):
     return (X_train, y_train), (X_valid, y_valid), (X_test, y_test)
 
 
-def plot_history(history):
-    plt.plot(history['metric'])
-    plt.plot(history['val_metric'])
+def plot_history(history, filename):
+
+    # plt.figure(figsize=2)
+    # for i in range(generatedImages.shape[0]):
+    #     plt.subplot(dim[0], dim[1], i + 1)
+    #     plt.imshow(generatedImages[i], interpolation='nearest', cmap='gray_r')
+    #     plt.axis('off')
+    # plt.tight_layout()
+    # plt.savefig(f'gan_images/gan_fasion_mnist_epoch_{epoch}_karakara.png')
+    # plt.close()
+
+    plt.figure(figsize=(20, 10))
+
+    plt.subplot(1, 2, 1)
+    plt.plot(history['acc'])
+    plt.plot(history['val_acc'])
     plt.title('Model accuracy')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
 
+    plt.subplot(1, 2, 2)
     plt.plot(history['loss'])
     plt.plot(history['val_loss'])
     plt.title('Model loss')
@@ -107,3 +121,6 @@ def plot_history(history):
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
+
+    plt.savefig(filename)
+    plt.close()
