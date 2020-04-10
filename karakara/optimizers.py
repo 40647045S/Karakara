@@ -1,4 +1,5 @@
 from .backend import np, epsilon
+from .utils.optimizer_utils import adam_update
 
 
 class Optimizer:
@@ -57,7 +58,7 @@ class RMSprop(Optimizer):
 
             grad = weight.regularized_grad()
             param_h = self.h[weight]
-            param_h = self.rho * param_h + (1 - self.rho) * grad**2
+            param_h = self.rho * param_h + (1 - self.rho) * np.square(grad)
 
             weight.weight -= self.current_lr * grad / (np.sqrt(param_h) + self.epsilon)
 
@@ -68,6 +69,8 @@ class Adam(Optimizer):
         self.lr = lr
         self.beta_1 = beta_1
         self.beta_2 = beta_2
+        self.cbeta_1 = 1 - beta_1
+        self.cbeta_2 = 1 - beta_2
         self.iter = 0
         self.m = {}
         self.v = {}
@@ -84,12 +87,10 @@ class Adam(Optimizer):
                 self.m[weight] = np.zeros_like(weight.weight)
             param_v = self.v[weight]
             param_m = self.m[weight]
-
             grad = weight.regularized_grad()
-            param_m += (1 - self.beta_1) * (grad - param_m)
-            param_v += (1 - self.beta_2) * (grad**2 - param_v)
 
-            weight.weight -= lr_t * param_m / (np.sqrt(param_v) + self.epsilon)
+            adam_update(grad, self.cbeta_1, self.cbeta_2, self.epsilon,
+                        lr_t, weight.weight, param_m, param_v)
 
 
 optimizer_table = {

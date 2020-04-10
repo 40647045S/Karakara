@@ -14,7 +14,7 @@ def main():
     start_time = time.time()
 
     for _ in range(20000):
-        x = cp.square(a)
+        x = a ** 5
 
     end_time = time.time()
     print(f'Use time: {end_time - start_time}')

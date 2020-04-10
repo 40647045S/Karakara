@@ -52,7 +52,7 @@ class MeanSquareError(BaseLossLayer):
         self.pred = inputs
         self.label = labels.reshape(-1, 1)
         batch_size = self.label.shape[0]
-        self.loss = (self.pred - self.label) ** 2 / 2
+        self.loss = np.square(self.pred - self.label) / 2
 
         return np.sum(self.loss) / batch_size
 

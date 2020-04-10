@@ -23,7 +23,7 @@ from utils import make_mnist_data, plot_history, make_fasion_mnist_data, make_ci
 
 input_shape = (3, 32, 32)
 n_classes = 10
-epochs = 30
+epochs = 1
 batch_size = 32
 
 BN_LAYER = BatchNormalization_v2

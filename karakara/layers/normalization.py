@@ -1,5 +1,6 @@
 from ..backend import np
 from ..engine.base_layer import Layer
+from ..utils.norm_utils import update_mean_var
 
 
 class BatchNormalization(Layer):
@@ -54,7 +55,7 @@ class BatchNormalization(Layer):
             axises = tuple(axises)
             mu = x.mean(axis=axises, keepdims=True)
             xc = x - mu
-            var = np.mean(xc**2, axis=axises, keepdims=True)
+            var = np.mean(np.square(xc), axis=axises, keepdims=True)
             std = np.sqrt(var + self.epison)
 
             xn = (inputs - mu) / std
@@ -122,10 +123,6 @@ class BatchNormalization_v2(Layer):
         self.running_mean = None
         self.running_var = None
 
-        self.batch_size = None
-        self.xc = None
-        self.std = None
-
     def build(self, input_shape, **kwargs):
         self.output_shape = input_shape
 
@@ -160,13 +157,15 @@ class BatchNormalization_v2(Layer):
         if train_flg:
             mu = x.mean(axis=1, keepdims=True)
             xc = x - mu
-            var = np.mean(xc**2, axis=1, keepdims=True)
-            std = np.sqrt(var + self.epison)
-            xn = xc / std
+            var = np.mean(np.square(xc), axis=1, keepdims=True)
+            inv_std = np.reciprocal(np.sqrt(var + self.epison))
+            xn = xc * inv_std
 
-            self.cahes = (x.shape[1], xc, xn, std)
-            self.running_mean.weight -= (self.running_mean.weight - mu) * self.momentum_decay
-            self.running_var.weight -= (self.running_var.weight - var) * self.momentum_decay
+            # todo
+            # unbiased estimation
+
+            self.cahes = (x.shape[1], xc, xn, inv_std)
+            update_mean_var(mu, var, self.momentum_decay, 0, self.running_mean.weight, self.running_var.weight)
         else:
             xc = x - self.running_mean.weight
             xn = xc / ((np.sqrt(self.running_var.weight + self.epison)))
@@ -188,25 +187,13 @@ class BatchNormalization_v2(Layer):
 
     def __backward(self, dout):
 
-        N, xc, xn, std = self.cahes
+        N, _, xn, inv_std = self.cahes
 
         np.sum(dout, axis=1, keepdims=True, out=self.beta.gradient)
         np.sum(xn * dout, axis=1, keepdims=True, out=self.gamma.gradient)
 
-        dxn2 = self.gamma.weight * dout
-        dxc2 = dxn2 / std + xc / N * - \
-            np.sum((dxn2 * xc), axis=1, keepdims=True) / (std * std * std)
-        dx = dxc2 - np.sum(dxc2, axis=1, keepdims=True) / N
-
-        # dxn2 = self.gamma.weight * dout
-        # dxc2 = dxn2 / self.std + self.xc / self.batch_size * - \
-        #     np.sum((dxn2 * self.xc), axis=1, keepdims=True) / (self.std * self.std * self.std)
-        # dx = dxc2 - np.sum(dxc2, axis=1, keepdims=True) / self.batch_size
-
-        # assert np.allclose(dx, dx2)
-
-        # self.gamma.gradient = dgamma
-        # self.beta.gradient = dbeta
-        # print(self.gamma.weight.shape, self.gamma.gradient.shape)
+        dxn = self.gamma.weight * dout
+        dxc = (dxn - xn / N * np.sum((dxn * xn), axis=1, keepdims=True)) * inv_std
+        dx = dxc - np.sum(dxc, axis=1, keepdims=True) / N
 
         return dx
