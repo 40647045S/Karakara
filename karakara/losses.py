@@ -33,7 +33,7 @@ class CategoricalCrossEntropy(BaseLossLayer):
 
     def backward(self, dout=1):
         batch_size = self.label.shape[0]
-        dx = -self.label / self.pred
+        dx = -self.label / np.maximum(self.pred, self.epsilon)
         dx = dx / batch_size
 
         return dx

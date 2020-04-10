@@ -29,12 +29,12 @@ batch_size = 64
 def make_model():
     model = Sequential()
     model.add(Conv2D(32, kernel_size=(3, 3), stride=1,
-                     pad='same', input_shape=input_shape))
+                     padding='same', input_shape=input_shape))
     model.add(ReLU())
     model.add(Dropout(0.25))
     model.add(MaxPooling2D(2, 2, stride=2))
 
-    model.add(Conv2D(64, kernel_size=(3, 3), stride=1, pad='same'))
+    model.add(Conv2D(64, kernel_size=(3, 3), stride=1, padding='same'))
     model.add(ReLU())
     model.add(Dropout(0.25))
     model.add(MaxPooling2D(2, 2, stride=2))

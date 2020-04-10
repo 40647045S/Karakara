@@ -9,7 +9,7 @@ from ..utils.math_utils import cal_init_std
 
 
 class Conv2D(Layer):
-    def __init__(self, filters, kernel_size, stride=1, pad='valid', input_shape=None, **kwargs):
+    def __init__(self, filters, kernel_size, stride=1, padding='valid', input_shape=None, **kwargs):
         super().__init__(**kwargs)
 
         self.filters = filters
@@ -20,9 +20,9 @@ class Conv2D(Layer):
         self.kernel_w = kernel_size[1]
         self.stride = stride
 
-        if pad == 'valid':
+        if padding == 'valid':
             self.pad = 0
-        elif pad == 'same':
+        elif padding == 'same':
             self.pad = kernel_size[0] // 2
 
         self.input_shape = input_shape
@@ -98,11 +98,15 @@ class Conv2D(Layer):
 
 class MaxPooling2D(Layer):
 
-    def __init__(self, pool_h, pool_w, stride=1, pad='valid', **kwargs):
+    def __init__(self, pool_h, pool_w, stride=None, pad='valid', **kwargs):
         super().__init__(**kwargs)
         self.pool_h = pool_h
         self.pool_w = pool_w
-        self.stride = stride
+
+        if stride:
+            self.stride = stride
+        else:
+            self.stride = pool_h
 
         if pad == 'valid':
             self.pad = 0

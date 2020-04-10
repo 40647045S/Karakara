@@ -133,3 +133,5 @@ dmypy.json
 
 #mine
 gan_images/*
+*.h8
+
