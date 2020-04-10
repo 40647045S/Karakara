@@ -7,5 +7,6 @@ from .merge import Separate
 from .merge import Same
 from .convolution import Conv2D
 from .convolution import MaxPooling2D
+from .convolution import AveragePooling2DAll
 from .normalization import BatchNormalization
 from .normalization import BatchNormalization_v2

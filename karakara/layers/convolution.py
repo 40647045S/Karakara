@@ -158,3 +158,29 @@ class MaxPooling2D(Layer):
                     self.pool_w, self.stride, self.stride, self.pad, self.pad)
 
         return dx
+
+
+class AveragePooling2DAll(Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def build(self, input_shape, **kwargs):
+        C, _, _ = input_shape
+        self.output_shape = (C, 1, 1)
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, inputs, **kwargs):
+        self.input_shape = inputs.shape
+        _, _, W, H = inputs.shape
+        self.mean_size = W * H
+        out = np.mean(inputs, axis=(2, 3), keepdims=True)
+
+        return out
+
+    def backward(self, dout):
+        dx = np.broadcast_to(dout, self.input_shape)
+        dx /= self.mean_size
+
+        return dx
