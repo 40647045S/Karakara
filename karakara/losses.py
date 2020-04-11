@@ -26,7 +26,7 @@ class CategoricalCrossEntropy(BaseLossLayer):
 
     def call(self, inputs, labels, **kwargs):
         self.pred = inputs
-        self.label = labels.astype('int')
+        self.label = labels
         self.loss = categorical_crossentropy_error(self.pred, self.label)
 
         return self.loss
@@ -36,7 +36,7 @@ class CategoricalCrossEntropy(BaseLossLayer):
 
         if self.label.ndim == 1:
             label = np.zeros_like(self.pred)
-            label[np.arange(batch_size), self.label] = 1
+            label[np.arange(batch_size), self.label.astype('int')] = 1
         else:
             label = self.label
 

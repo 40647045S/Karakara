@@ -28,11 +28,11 @@ batch_size = 32
 def cnn_seq(num_filters=16, kernel_size=3, strides=1,
             activation=ReLU, batch_normalization=True, conv_first=True):
     seq = Sequential()
-    seq.add(Conv2D(num_filters, kernel_size=kernel_size, stride=strides, padding='same', kernel_regularizer=l2(5e-3)))
+    seq.add(Conv2D(num_filters, kernel_size=kernel_size, strides=strides, padding='same', kernel_regularizer=l2(5e-3)))
     if batch_normalization:
         seq.add(BatchNormalization_v2())
     seq.add(activation())
-    seq.add(Conv2D(num_filters, kernel_size=kernel_size, stride=1, padding='same', kernel_regularizer=l2(5e-3)))
+    seq.add(Conv2D(num_filters, kernel_size=kernel_size, strides=1, padding='same', kernel_regularizer=l2(5e-3)))
     if batch_normalization:
         seq.add(BatchNormalization_v2())
 
@@ -43,7 +43,7 @@ def add_residual_block(model, num_filters=16, kernel_size=3, strides=1,
                        activation=ReLU, cnn_shortcut=False, batch_normalization=True, conv_first=True):
 
     if cnn_shortcut:
-        shortcut = Conv2D(num_filters, kernel_size=1, stride=strides,
+        shortcut = Conv2D(num_filters, kernel_size=1, strides=strides,
                           padding='same', kernel_regularizer=l2(5e-3))
     else:
         shortcut = Same()
@@ -62,7 +62,7 @@ def make_model():
     model = Sequential()
     model.add(Input(shape=input_shape))
 
-    model.add(Conv2D(16, kernel_size=3, stride=1, padding='same', kernel_regularizer=l2(1e-4)))
+    model.add(Conv2D(16, kernel_size=3, strides=1, padding='same', kernel_regularizer=l2(1e-4)))
     model.add(BatchNormalization_v2())
     model.add(ReLU())
 

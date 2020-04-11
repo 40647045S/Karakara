@@ -222,16 +222,21 @@ class Sequential(Layer):
 
         return self.history
 
-    def fit_torchvision(self, training_data, batch_size, epochs, validation_data, verbose=1):
+    def fit_torchvision(self, training_data, batch_size, epochs, validation_data, callbacks=None, verbose=1):
         self.set_up_history()
         num_of_samples = len(training_data)
         num_of_validate = len(validation_data)
 
         print(f'Train on {num_of_samples} samples, validate on {num_of_validate} samples.')
 
-        for n_epoch in range(epochs):
+        for n_epoch in range(1, epochs + 1):
+            self.n_epoch = n_epoch
             if verbose:
-                print(f'Epoch {n_epoch+1}/{epochs}')
+                print(f'Epoch {n_epoch}/{epochs}')
+
+            if callbacks:
+                for callback in callbacks:
+                    callback(self)
 
             X, y, X_valid, y_valid = [], [], [], []
 

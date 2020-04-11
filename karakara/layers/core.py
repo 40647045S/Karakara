@@ -48,7 +48,6 @@ class Dense(Layer):
             weight_std = cal_init_std(self.kernel_initializer, pre_node_nums)
 
             # assert input_shape
-            print('r', self.kernel_regularizer)
             self.kernel = self.add_weight(
                 shape=(input_shape[-1], self.units), std=weight_std, regularizer=self.kernel_regularizer)
             self.bias = self.add_weight(

@@ -9,7 +9,7 @@ from ..utils.math_utils import cal_init_std
 
 
 class Conv2D(Layer):
-    def __init__(self, filters, kernel_size, stride=1, padding='valid', kernel_regularizer=None, input_shape=None, **kwargs):
+    def __init__(self, filters, kernel_size, strides=1, padding='valid', kernel_regularizer=None, input_shape=None, **kwargs):
         super().__init__(**kwargs)
 
         self.filters = filters
@@ -18,7 +18,7 @@ class Conv2D(Layer):
 
         self.kernel_h = kernel_size[0]
         self.kernel_w = kernel_size[1]
-        self.stride = stride
+        self.stride = strides
 
         if padding == 'valid':
             self.pad = 0

@@ -11,11 +11,12 @@ keras.backend.set_image_data_format('channels_first')
 n_classes = 10
 
 
-def make_mnist_data(valid_ratio=0.2):
+def make_mnist_data(valid_ratio=0.2, reshape=True):
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
 
-    X_train = X_train.reshape(60000, 784)
-    X_test = X_test.reshape(10000, 784)
+    if reshape:
+        X_train = X_train.reshape(60000, 784)
+        X_test = X_test.reshape(10000, 784)
     X_train = X_train.astype('float32')
     X_test = X_test.astype('float32')
     X_train /= 255
