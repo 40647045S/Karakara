@@ -1,36 +1,38 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 from karakara import config
 config.GPU = True
 import karakara.backend as K
-# K.set_floatx('float16')
+# K.set_floatx('float64')
 # K.set_epsilon(1e-4)
 
 from karakara.models import Sequential
-from karakara.layers import Dense, Dropout
+from karakara.layers import Dense, Dropout, Input
 from karakara.activations import Sigmoid, LeakyReLU, Softmax
-from karakara.optimizers import SGD, Momentom, Adam, RMSprop
+from karakara.optimizers import SGD, Momentum, Adam, RMSprop
 
 from utils import plot_history, make_mnist_data
 
-input_shape = 784
+input_shape = (784, )
 n_classes = 10
-epochs = 5
+epochs = 20
 batch_size = 128
 
 
 def make_model():
     model = Sequential()
-    model.add(Dense(1024, input_shape=input_shape))
+    model.add(Input(shape=input_shape))
+    model.add(Dense(4096))
     model.add(LeakyReLU(0.2))
-    model.add(Dropout(0.3))
+    model.add(Dense(2048))
+    model.add(LeakyReLU(0.2))
+    model.add(Dense(1024))
+    model.add(LeakyReLU(0.2))
     model.add(Dense(512))
     model.add(LeakyReLU(0.2))
-    model.add(Dropout(0.3))
     model.add(Dense(256))
     model.add(LeakyReLU(0.2))
-    model.add(Dropout(0.3))
-    model.add(Dense(128))
-    model.add(LeakyReLU(0.2))
-    model.add(Dropout(0.3))
     model.add(Dense(10))
     model.add(Softmax())
 

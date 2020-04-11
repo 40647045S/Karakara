@@ -14,13 +14,28 @@ if GPU:
         ''',
         'adam')
 
+if GPU:
+    momentum_kernel = np.ElementwiseKernel(
+        'P grad, P momentum, '
+        'P lr',
+        'P param, P v',
+        '''
+            v += momentum * v - lr * grad;
+            param += v
+        ''',
+        'momentum')
+
 
 def SGD_update():
     pass
 
 
-def Momentom_update():
-    pass
+def momentum_update(grad, momentum, lr, param, v):
+    if isinstance(grad, numpy.ndarray):
+        v = momentum * v - lr * grad
+        param += v
+    else:
+        momentum_kernel(grad, momentum, lr, param, v)
 
 
 def RMSprop_update():

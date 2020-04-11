@@ -13,7 +13,7 @@ from karakara.models import Sequential
 from karakara.layers import Input, Dense, Conv2D, MaxPooling2D
 from karakara.layers import Dropout, Flatten
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
-from karakara.optimizers import SGD, Momentom, RMSprop, Adam
+from karakara.optimizers import SGD, Momentum, RMSprop, Adam
 
 from utils import make_cifar10_data, plot_history
 

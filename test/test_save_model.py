@@ -13,7 +13,7 @@ from karakara.models import Sequential, load_model
 from karakara.layers import Dense, Dropout, Input
 from karakara.layers import Flatten, Conv2D, MaxPooling2D
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
-from karakara.optimizers import SGD, Momentom, Adam
+from karakara.optimizers import SGD, Momentum, Adam
 
 from karakara.utils.conv_utils import im2col, col2im
 from karakara.backend import np

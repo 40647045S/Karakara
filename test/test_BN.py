@@ -14,7 +14,7 @@ from karakara.layers import Dense, Dropout, BatchNormalization, Input
 from karakara.layers import Flatten, Conv2D, MaxPooling2D, BatchNormalization_v2
 from karakara.layers.deprecated import BatchNormalizationAll
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
-from karakara.optimizers import SGD, Momentom, Adam, RMSprop
+from karakara.optimizers import SGD, Momentum, Adam, RMSprop
 
 from karakara.utils.conv_utils import im2col, col2im
 from karakara.backend import np

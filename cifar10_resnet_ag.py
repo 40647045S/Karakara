@@ -11,7 +11,7 @@ from karakara.layers import Dense, Dropout, BatchNormalization_v2
 from karakara.layers import Input, Add, Separate, Same, Flatten
 from karakara.layers import Conv2D, MaxPooling2D, AveragePooling2DAll
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
-from karakara.optimizers import SGD, Momentom, Adam
+from karakara.optimizers import SGD, Momentum, Adam
 from karakara.regulizers import l2
 
 from utils import plot_history
