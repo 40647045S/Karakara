@@ -21,7 +21,7 @@ def setup_data(x, device=0):
         with np.cuda.Device(device):
             return np.asarray(x, dtype=floatx())
     else:
-        return x.astype(floatx())
+        return np.asarray(x, dtype=floatx())
 
 
 def restore_data(x):

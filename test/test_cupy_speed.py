@@ -4,23 +4,19 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 import time
 import math
 import cupy as cp
-import common
 
 
 def main():
     a = cp.random.randn(2000, 2000).astype('float32')
-    b = cp.random.randn(2000, 1).astype('float32')
-    c = cp.random.randn(2000, 2000).astype('float32')
+    b = cp.random.randn(2000, 2000).astype('float32')
+    a = cp.arange(9).reshape(3, 3)
 
     start_time = time.time()
 
     # for i in range(1, 50):
 
-    c = cp.array([[1, 2, 3, 4], [5, 6, 7, 8]]).reshape(2, 4, 1, 1)
-    d = cp.broadcast_to(c, (2, 4, 2, 2))
-    print(c)
-    print(d)
-    print(d.shape)
+    a[cp.array([0, 1, 2]), cp.array([0, 1, 2])] = -1
+    print(a)
 
     end_time = time.time()
     print(f'Use time: {end_time - start_time}')

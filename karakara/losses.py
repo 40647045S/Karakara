@@ -26,14 +26,21 @@ class CategoricalCrossEntropy(BaseLossLayer):
 
     def call(self, inputs, labels, **kwargs):
         self.pred = inputs
-        self.label = labels
+        self.label = labels.astype('int')
         self.loss = categorical_crossentropy_error(self.pred, self.label)
 
         return self.loss
 
     def backward(self, dout=1):
         batch_size = self.label.shape[0]
-        dx = -1 * self.label / np.maximum(self.pred, self.epsilon)
+
+        if self.label.ndim == 1:
+            label = np.zeros_like(self.pred)
+            label[np.arange(batch_size), self.label] = 1
+        else:
+            label = self.label
+
+        dx = -1 * label / np.maximum(self.pred, self.epsilon)
         dx = dx / batch_size
 
         return dx

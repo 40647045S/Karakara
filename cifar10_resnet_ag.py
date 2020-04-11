@@ -1,3 +1,5 @@
+import torchvision
+
 from karakara import config
 config.GPU = True
 import karakara.backend as K
@@ -12,7 +14,7 @@ from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
 from karakara.optimizers import SGD, Momentom, Adam
 from karakara.regulizers import l2
 
-from utils import plot_history, make_cifar10_data
+from utils import plot_history
 
 input_shape = (3, 32, 32)
 n_classes = 10
@@ -85,20 +87,30 @@ def make_model():
 
 
 def main():
+    transform_train = torchvision.transforms.Compose([
+        torchvision.transforms.RandomCrop(32, padding=4),
+        torchvision.transforms.RandomHorizontalFlip(),
+        torchvision.transforms.RandomRotation(15),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
 
-    (X_train, y_train), (X_valid, y_valid), (X_test,
-                                             y_test) = make_cifar10_data()
-    print(X_train.shape)
-    print(X_test.shape)
+    transform_test = torchvision.transforms.Compose([
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+
+    training_data = torchvision.datasets.CIFAR10('./data/cifar10', train=True, transform=transform_train, download=True)
+    testing_data = torchvision.datasets.CIFAR10('./data/cifar10', train=False, transform=transform_test, download=True)
 
     model = make_model()
 
-    history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs,
-                        validation_data=(X_valid, y_valid))
+    history = model.fit_torchvision(training_data, batch_size=batch_size, epochs=epochs,
+                                    validation_data=testing_data)
 
-    test_loss, test_acc = model.evaluate(X_test, y_test)
-    print()
-    print(f'Test loss: {test_loss}, test acc: {test_acc}')
+    # test_loss, test_acc = model.evaluate(X_test, y_test)
+    # print()
+    # print(f'Test loss: {test_loss}, test acc: {test_acc}')
 
     plot_history(history, 'cifar10_resnet.jpg')
 

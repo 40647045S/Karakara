@@ -12,9 +12,11 @@ def softmax(x):
 
 
 def categorical_crossentropy_error(y, t):
+    t = t.astype('int')
+
     if y.ndim == 1:
-        t = t.reshape(1, t.size)
         y = y.reshape(1, y.size)
+        t = t.reshape(1, t.size)
 
     if t.size == y.size:
         t = t.argmax(axis=1)

@@ -116,7 +116,7 @@ class Sequential(Layer):
 
         metric = None
         if self.metric:
-            metric = self.metric.call(x, y)
+            metric = self.metric.call(y_pred=x, y_true=y)
             metric = float(metric)
 
         return loss, metric
@@ -184,6 +184,68 @@ class Sequential(Layer):
         for n_epoch in range(epochs):
             if verbose:
                 print(f'Epoch {n_epoch+1}/{epochs}')
+            order = np.random.permutation(num_of_samples)
+
+            avg_batch_loss, avg_batch_metrics = 0, 0
+            pbar = range(0, num_of_samples, batch_size)
+            if verbose:
+                pbar = tqdm(pbar, ncols=100, ascii='.>>>>>>>>>>>>=', unit='bs',
+                            bar_format='{desc}[{bar}] - ETA: {remaining_s:3.1f}s - {rate_fmt}{postfix}', leave=False)
+            for index, n_batch in enumerate(pbar):
+                data_slice = order[n_batch:n_batch + batch_size]
+                X_train, y_train = X[data_slice], y[data_slice]
+                batch_loss, batch_metric = self.train_on_batch(
+                    X_train, y_train)
+                avg_batch_loss = (index * avg_batch_loss + batch_loss) / (index + 1)
+                avg_batch_metrics = (index * avg_batch_metrics + batch_metric) / (index + 1)
+
+                if verbose and n_batch % 10 == 0:
+                    pbar.set_description(f"{n_batch:6d}/{num_of_samples}")
+                    pbar.set_postfix(loss=f'{avg_batch_loss:.4f}',
+                                     metric=f'{avg_batch_metrics:.4f}')
+
+            pbar.bar_format = '{desc}[{bar}] - USE: {elapsed_s:3.1f}s - {rate_fmt}{postfix}'
+            pbar.display()
+            print()
+
+            train_loss = avg_batch_loss
+            train_metric = avg_batch_metrics
+            valid_loss, valid_metric = self.evaluate(X_valid, y_valid, batch_size=batch_size)
+
+            self.history['loss'].append(train_loss)
+            self.history[self.metric.nickname].append(train_metric)
+            self.history['val_loss'].append(valid_loss)
+            self.history['val_' + self.metric.nickname].append(valid_metric)
+            if verbose:
+                print(
+                    f'loss: {train_loss:.4f} - metric: {train_metric:.4f} - val_loss: {valid_loss:.4f} - valid_metric: {valid_metric:.4f}')
+
+        return self.history
+
+    def fit_torchvision(self, training_data, batch_size, epochs, validation_data, verbose=1):
+        self.set_up_history()
+        num_of_samples = len(training_data)
+        num_of_validate = len(validation_data)
+
+        print(f'Train on {num_of_samples} samples, validate on {num_of_validate} samples.')
+
+        for n_epoch in range(epochs):
+            if verbose:
+                print(f'Epoch {n_epoch+1}/{epochs}')
+
+            X, y, X_valid, y_valid = [], [], [], []
+
+            for image, label in training_data:
+                X.append(image.numpy())
+                y.append(label)
+
+            for image, label in validation_data:
+                X_valid.append(image.numpy())
+                y_valid.append(label)
+
+            X, y = self.setup_data(X), self.setup_data(y).astype('int')
+            X_valid, y_valid = self.setup_data(X_valid), self.setup_data(y_valid).astype('int')
+
             order = np.random.permutation(num_of_samples)
 
             avg_batch_loss, avg_batch_metrics = 0, 0
