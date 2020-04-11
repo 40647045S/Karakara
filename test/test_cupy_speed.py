@@ -4,6 +4,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 import time
 import math
 import cupy as cp
+import common
 
 
 def main():

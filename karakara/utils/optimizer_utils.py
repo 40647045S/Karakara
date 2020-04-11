@@ -15,6 +15,18 @@ if GPU:
         'adam')
 
 
+def SGD_update():
+    pass
+
+
+def Momentom_update():
+    pass
+
+
+def RMSprop_update():
+    pass
+
+
 def adam_update(grad, cbeta_1, cbeta_2, epsilon,
                 lr_t, weight, param_m, param_v):
 
