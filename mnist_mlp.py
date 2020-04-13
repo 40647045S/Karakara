@@ -37,7 +37,7 @@ def make_model():
     model.add(Softmax())
 
     model.summary()
-    model.compile(Adam(), 'categorical_crossentropy', 'accuracy')
+    model.compile(Momentum(), 'categorical_crossentropy', 'accuracy')
 
     return model
 

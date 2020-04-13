@@ -16,7 +16,7 @@ from utils import plot_history, make_mnist_data
 
 input_shape = (784, )
 n_classes = 10
-epochs = 2
+epochs = 10
 batch_size = 128
 
 
@@ -45,8 +45,8 @@ def main():
     from collections import OrderedDict
     import matplotlib.pyplot as plt
 
-    opts = [Momentum, SGD, RMSprop, Adam]
-    lrs = [0.01, 0.001, 0.0001]
+    opts = [SGD, Momentum, RMSprop, Adam]
+    lrs = [0.1]
     for lr in lrs:
         historys = OrderedDict()
         for opt in opts:
@@ -58,7 +58,7 @@ def main():
 
             historys[opt.__name__] = history
 
-        plt.figure(figsize=(20, 10))
+        plt.figure(figsize=(16, 8))
         plt.subplot(1, 2, 1)
         for history in historys.values():
             plt.plot(history['acc'])

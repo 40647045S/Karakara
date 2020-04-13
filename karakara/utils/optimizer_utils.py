@@ -3,6 +3,16 @@ from ..backend import np
 from ..config import GPU
 
 if GPU:
+    momentum_kernel = np.ElementwiseKernel(
+        'P grad, P momentum, '
+        'P lr',
+        'P param, P v',
+        '''
+            v = momentum * v - lr * grad;
+            param += v
+        ''',
+        'momentum')
+
     adam_kernel = np.ElementwiseKernel(
         'P grad, T cbeta1, T cbeta2, '
         'T epsilon, T lr',
@@ -14,17 +24,6 @@ if GPU:
         ''',
         'adam')
 
-if GPU:
-    momentum_kernel = np.ElementwiseKernel(
-        'P grad, P momentum, '
-        'P lr',
-        'P param, P v',
-        '''
-            v += momentum * v - lr * grad;
-            param += v
-        ''',
-        'momentum')
-
 
 def SGD_update():
     pass
@@ -35,6 +34,8 @@ def momentum_update(grad, momentum, lr, param, v):
         v = momentum * v - lr * grad
         param += v
     else:
+        # v = momentum * v - lr * grad
+        # param += v
         momentum_kernel(grad, momentum, lr, param, v)
 
 
