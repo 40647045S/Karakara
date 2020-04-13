@@ -122,7 +122,7 @@ class Sequential(Layer):
         return loss, metric
 
     def evaluate(self, X, y, batch_size=32, training=False):
-        num_step = X.shape[0] // batch_size
+        num_step = X.shape[0] // batch_size + bool(X.shape[0] % batch_size)
         X, y = self.setup_data(X), self.setup_data(y)
 
         losses, metrics = [], []
@@ -204,9 +204,10 @@ class Sequential(Layer):
                     pbar.set_postfix(loss=f'{avg_batch_loss:.4f}',
                                      metric=f'{avg_batch_metrics:.4f}')
 
-            pbar.bar_format = '{desc}[{bar}] - USE: {elapsed_s:3.1f}s - {rate_fmt}{postfix}'
-            pbar.display()
-            print()
+            if verbose:
+                pbar.bar_format = '{desc}[{bar}] - USE: {elapsed_s:3.1f}s - {rate_fmt}{postfix}'
+                pbar.display()
+                print()
 
             train_loss = avg_batch_loss
             train_metric = avg_batch_metrics

@@ -1,7 +1,8 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import torchvision
+import numpy as np
 
 from karakara import config
 config.GPU = True
@@ -14,17 +15,18 @@ from karakara.layers import Dense, Dropout, BatchNormalization_v2
 from karakara.layers import Input, Add, Separate, Same, Flatten, Activation
 from karakara.layers import Conv2D, MaxPooling2D, AveragePooling2DAll
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Softmax
-from karakara.optimizers import SGD, Momentom, Adam
+from karakara.optimizers import SGD, Momentum, Adam
 from karakara.regulizers import l2
+from karakara.callbacks import ReduceLROnPlateau
 
 from utils import plot_history
 
 input_shape = (3, 32, 32)
 n_classes = 10
-epochs = 200
+epochs = 100
 batch_size = 32
 l2_lambda = 0
-depth = 29
+depth = 38
 
 
 def add_resnet_layer(model, num_filters=16, kernel_size=3, strides=1,
@@ -141,10 +143,15 @@ def main():
         print('Learning rate: ', lr)
         return lr
 
-    history = model.fit_torchvision(training_data, batch_size=batch_size, epochs=epochs,
-                                    validation_data=testing_data, callbacks=[lr_schduler])
+    lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),
+                                   cooldown=0,
+                                   patience=7,
+                                   min_lr=0.5e-6)
 
-    plot_history(history, 'cifar10_resnet_v2_s2.jpg')
+    history = model.fit_torchvision(training_data, batch_size=batch_size, epochs=epochs,
+                                    validation_data=testing_data, callbacks=[lr_reducer])
+
+    plot_history(history, 'cifar10_resnet20_v2.jpg')
 
 
 if __name__ == '__main__':

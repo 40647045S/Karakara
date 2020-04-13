@@ -1,5 +1,5 @@
 from .backend import np, epsilon, setup_data
-from .utils.optimizer_utils import adam_update
+from .utils.optimizer_utils import adam_update, momentum_update
 
 
 class Optimizer:
@@ -21,7 +21,7 @@ class SGD(Optimizer):
             weight.weight -= self.lr * weight.regularized_grad()
 
 
-class Momentom(Optimizer):
+class Momentum(Optimizer):
 
     def __init__(self, lr=0.01, momentum=0.9):
         self.lr = lr
@@ -32,10 +32,10 @@ class Momentom(Optimizer):
         for weight in self.get_trainable(weights):
             if not weight in self.v:
                 self.v[weight] = np.zeros_like(weight.weight)
-            # param_v = self.v[weight]
-            self.v[weight] = self.momentum * \
-                self.v[weight] - self.lr * weight.regularized_grad()
-            weight.weight += self.v[weight]
+
+            momentum_update(weight.regularized_grad(), self.momentum, self.lr, weight.weight, self.v[weight])
+            # self.v[weight] = self.momentum * self.v[weight] - self.lr * weight.regularized_grad()
+            # weight.weight += self.v[weight]
 
 
 class RMSprop(Optimizer):
@@ -66,6 +66,7 @@ class RMSprop(Optimizer):
 class Adam(Optimizer):
 
     def __init__(self, lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=epsilon(), decay=0.):
+        self.origin_lr = lr
         self.lr = lr
         self.beta_1 = beta_1
         self.beta_2 = beta_2
@@ -88,18 +89,18 @@ class Adam(Optimizer):
             if not weight in self.v:
                 self.v[weight] = np.zeros_like(weight.weight)
                 self.m[weight] = np.zeros_like(weight.weight)
-            param_v = self.v[weight]
-            param_m = self.m[weight]
-            grad = weight.regularized_grad()
+            # param_v = self.v[weight]
+            # param_m = self.m[weight]
+            # grad = weight.regularized_grad()
 
             # print(weight.name, grad.dtype)
-            adam_update(grad, self.cbeta_1, self.cbeta_2, self.epsilon,
-                        lr_t, weight.weight, param_m, param_v)
+            adam_update(weight.regularized_grad(), self.cbeta_1, self.cbeta_2, self.epsilon,
+                        lr_t, weight.weight, self.m[weight], self.v[weight])
 
 
 optimizer_table = {
     'sgd': SGD,
-    'momentom': Momentom,
+    'momentom': Momentum,
     'adam': Adam,
     'rmsprop': RMSprop,
 }

@@ -12,7 +12,7 @@ import karakara.backend as K
 from karakara.models import Sequential
 from karakara.layers import Input, Dense, Dropout
 from karakara.activations import Sigmoid, LeakyReLU, Softmax
-from karakara.optimizers import SGD, Momentom, Adam, RMSprop
+from karakara.optimizers import SGD, Momentum, Adam, RMSprop
 from karakara.regulizers import l2
 
 from utils import plot_history, make_mnist_data

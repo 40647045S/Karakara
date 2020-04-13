@@ -103,7 +103,7 @@ def plot_history(history, filename):
     # plt.savefig(f'gan_images/gan_fasion_mnist_epoch_{epoch}_karakara.png')
     # plt.close()
 
-    plt.figure(figsize=(20, 10))
+    plt.figure(figsize=(16, 8))
 
     plt.subplot(1, 2, 1)
     plt.plot(history['acc'])

@@ -13,7 +13,7 @@ K.set_random_seed(1988)
 from karakara.models import Sequential
 from karakara.layers import Dense, Dropout
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Tanh
-from karakara.optimizers import SGD, Momentom, Adam
+from karakara.optimizers import SGD, Momentum, Adam
 
 from utils import make_cifar10_data
 
