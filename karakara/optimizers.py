@@ -84,6 +84,7 @@ class Adam(Optimizer):
         # print(lr_t)
         lr_t = (self.lr * (self.decay ** self.iter)) * \
             np.sqrt(1.0 - self.beta_2 ** self.iter) / (1.0 - self.beta_1**self.iter)
+        lr_t = setup_data(lr_t)
 
         for weight in self.get_trainable(weights):
             if not weight in self.v:

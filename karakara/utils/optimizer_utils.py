@@ -14,8 +14,8 @@ if GPU:
         'momentum')
 
     adam_kernel = np.ElementwiseKernel(
-        'P grad, T cbeta1, T cbeta2, '
-        'T epsilon, T lr',
+        'P grad, P cbeta1, P cbeta2, '
+        'P epsilon, P lr',
         'P param, P m, P v',
         '''
             m += cbeta1 * (grad - m);

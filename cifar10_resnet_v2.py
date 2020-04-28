@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import torchvision
 import numpy as np
@@ -23,10 +23,10 @@ from utils import plot_history
 
 input_shape = (3, 32, 32)
 n_classes = 10
-epochs = 100
+epochs = 200
 batch_size = 32
-l2_lambda = 0
-depth = 38
+l2_lambda = 1e-4
+depth = 56
 
 
 def add_resnet_layer(model, num_filters=16, kernel_size=3, strides=1,
@@ -112,7 +112,7 @@ def main():
     transform_train = torchvision.transforms.Compose([
         torchvision.transforms.RandomCrop(32, padding=4, padding_mode='edge'),
         torchvision.transforms.RandomHorizontalFlip(),
-        torchvision.transforms.RandomRotation(15),
+        # torchvision.transforms.RandomRotation(15),
         torchvision.transforms.ToTensor(),
         torchvision.transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
@@ -145,13 +145,15 @@ def main():
 
     lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),
                                    cooldown=0,
-                                   patience=7,
+                                   patience=6,
                                    min_lr=0.5e-6)
 
     history = model.fit_torchvision(training_data, batch_size=batch_size, epochs=epochs,
-                                    validation_data=testing_data, callbacks=[lr_reducer])
+                                    validation_data=testing_data, callbacks=[lr_schduler])
 
-    plot_history(history, 'cifar10_resnet20_v2.jpg')
+    plot_history(history, 'cifar10_resnet56_v2.jpg')
+
+    model.save('resnet56_v2.h8')
 
 
 if __name__ == '__main__':
