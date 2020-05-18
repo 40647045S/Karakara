@@ -1,5 +1,5 @@
 from math import sqrt
-from numpy import prod
+from numpy import prod, argsort
 from ..backend import np
 from ..engine.base_layer import Layer
 from ..utils.math_utils import cal_init_std
@@ -113,3 +113,49 @@ class Flatten(Layer):
 
     def backward(self, dout):
         return dout.reshape(self.input_shape)
+
+
+class Reshape(Layer):
+    def __init__(self, shape):
+        super().__init__()
+        self.output_shape = shape
+
+    def build(self, input_shape, **kwargs):
+        self.input_shape = input_shape
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, inputs, **kwargs):
+        batch_size = inputs.shape[0]
+        self.input_shape = inputs.shape
+        return inputs.reshape(batch_size, *self.output_shape)
+
+    def backward(self, dout):
+        return dout.reshape(self.input_shape)
+
+
+class Transpose(Layer):
+    def __init__(self, axes=None):
+        super().__init__()
+        self.axes = axes
+
+    def build(self, input_shape, **kwargs):
+        if self.axes == None:
+            self.output_shape = reversed(input_shape)
+        else:
+            self.output_shape = tuple([input_shape[idx - 1] for idx in self.axes[1:]])
+
+    def compute_output_shape(self):
+        return self.output_shape
+
+    def call(self, inputs, **kwargs):
+        return np.transpose(inputs, self.axes)
+
+    def backward(self, dout):
+        if self.axes == None:
+            return np.transpose(dout)
+
+        axes_len = len(self.axes)
+        inv_axes = tuple(argsort([ax % axes_len for ax in self.axes]))
+        return np.transpose(dout, inv_axes)

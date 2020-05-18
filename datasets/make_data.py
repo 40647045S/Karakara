@@ -13,7 +13,7 @@ datasets = {
 def main():
     for name, dataset in datasets.items():
         (X_train, y_train), (X_test, y_test) = dataset.load_data()
-        np.savez(f'{name}.npz', X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test)
+        np.savez_compressed(f'{name}.npz', X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test)
 
 
 if __name__ == '__main__':

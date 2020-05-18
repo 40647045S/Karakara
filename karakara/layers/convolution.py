@@ -9,7 +9,7 @@ from ..utils.math_utils import cal_init_std
 
 
 class Conv2D(Layer):
-    def __init__(self, filters, kernel_size, strides=1, padding='valid', kernel_regularizer=None, input_shape=None, **kwargs):
+    def __init__(self, filters, kernel_size, strides=1, padding='valid', use_bias=True, kernel_regularizer=None, input_shape=None, **kwargs):
         super().__init__(**kwargs)
 
         self.filters = filters
@@ -25,6 +25,7 @@ class Conv2D(Layer):
         elif padding == 'same':
             self.pad = kernel_size[0] // 2
 
+        self.use_bias = use_bias
         self.kernel_regularizer = kernel_regularizer
 
         self.input_shape = input_shape
@@ -49,8 +50,10 @@ class Conv2D(Layer):
 
             self.kernel = self.add_weight(
                 shape=(self.filters, self.channel, self.kernel_h, self.kernel_w), std=weight_std, regularizer=self.kernel_regularizer)
-            self.bias = self.add_weight(
-                shape=(self.filters, ), mean=0, initializer='constant')
+
+            if self.use_bias:
+                self.bias = self.add_weight(
+                    shape=(self.filters, ), mean=0, initializer='constant')
 
             out_h = 1 + int((H + 2 * self.pad - self.kernel_h) / self.stride)
             out_w = 1 + int((W + 2 * self.pad - self.kernel_w) / self.stride)
@@ -70,7 +73,9 @@ class Conv2D(Layer):
                      self.kernel_w, self.stride, self.stride, self.pad, self.pad)
         col_W = self.kernel.weight.reshape(self.filters, -1).T
 
-        out = np.dot(col, col_W) + self.bias.weight
+        out = np.dot(col, col_W)
+        if self.use_bias:
+            out += self.bias.weight
         out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
 
         self.x = inputs
@@ -84,7 +89,8 @@ class Conv2D(Layer):
 
         dout = dout.transpose(0, 2, 3, 1).reshape(-1, self.filters)
 
-        np.sum(dout, axis=0, out=self.bias.gradient)
+        if self.use_bias:
+            np.sum(dout, axis=0, out=self.bias.gradient)
         self.kernel.gradient = np.dot(self.col.T, dout)
         self.kernel.gradient = self.kernel.gradient.transpose(
             1, 0).reshape(self.kernel.weight.shape)

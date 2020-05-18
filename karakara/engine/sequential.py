@@ -290,6 +290,66 @@ class Sequential(Layer):
 
         return self.history
 
+    def fit_dataloader(self, training_data, batch_size, epochs, validation_data=None, callbacks=None, verbose=1):
+        self.set_up_history()
+        num_of_samples = len(training_data)
+        if validation_data is not None:
+            num_of_validate = len(validation_data)
+
+        if validation_data is not None:
+            print(f'Train on {num_of_samples} samples, validate on {num_of_validate} samples.')
+        else:
+            print(f'Train on {num_of_samples} samples.')
+
+        for n_epoch in range(1, epochs + 1):
+            self.n_epoch = n_epoch
+            if verbose:
+                print(f'Epoch {n_epoch}/{epochs}')
+
+            if callbacks:
+                for callback in callbacks:
+                    callback(self)
+
+            avg_batch_loss, avg_batch_metrics = 0, 0
+            pbar = range(0, num_of_samples)
+            if verbose:
+                pbar = tqdm(pbar, ncols=100, ascii='.>>>>>>>>>>>>=', unit='bs',
+                            bar_format='{desc}[{bar}] - ETA: {remaining_s:3.1f}s - {rate_fmt}{postfix}', leave=False)
+            for index, (n_batch, sample) in enumerate(zip(pbar, training_data)):
+                X_train, y_train = self.setup_data(sample[0]), self.setup_data(sample[1])
+                batch_loss, batch_metric = self.train_on_batch(
+                    X_train, y_train)
+                avg_batch_loss = (index * avg_batch_loss + batch_loss) / (index + 1)
+                if self.metric:
+                    avg_batch_metrics = (index * avg_batch_metrics + batch_metric) / (index + 1)
+
+                if verbose:
+                    pbar.set_description(f"{n_batch:6d}/{num_of_samples}")
+                    pbar.set_postfix(loss=f'{avg_batch_loss:.4f}')
+                    if self.metric is not None:
+                        pbar.set_postfix(loss=f'{avg_batch_loss:.4f}', metric=f'{avg_batch_metrics:.4f}')
+
+            pbar.bar_format = '{desc}[{bar}] - USE: {elapsed_s:3.1f}s - {rate_fmt}{postfix}'
+            pbar.display()
+            print()
+
+            train_loss = avg_batch_loss
+            train_metric = avg_batch_metrics
+            if validation_data is not None:
+                valid_loss, valid_metric = self.evaluate(X_valid, y_valid, batch_size=batch_size)
+
+            self.history['loss'].append(train_loss)
+            if self.metric is not None:
+                self.history[self.metric.nickname].append(train_metric)
+            if validation_data is not None:
+                self.history['val_loss'].append(valid_loss)
+                self.history['val_' + self.metric.nickname].append(valid_metric)
+            # if verbose:
+            #     print(
+            #         f'loss: {train_loss:.4f} - metric: {train_metric:.4f} - val_loss: {valid_loss:.4f} - valid_metric: {valid_metric:.4f}')
+
+        return self.history
+
     def save(self, filename):
         with open(filename, 'wb') as file:
             pickle.dump(self, file)

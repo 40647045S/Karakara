@@ -59,3 +59,6 @@ class Add(Layer):
 
     def backward(self, dout):
         return dout
+
+
+

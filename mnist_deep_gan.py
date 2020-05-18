@@ -93,7 +93,7 @@ def plotGeneratedImages(epoch, generator, examples=100, dim=(10, 10), figsize=(1
         plt.imshow(generatedImages[i], interpolation='nearest', cmap='gray_r')
         plt.axis('off')
     plt.tight_layout()
-    plt.savefig(f'gan_images/gan_fasion_mnist_epoch_{epoch}_karakara.png')
+    plt.savefig(f'gan_images/gan_mnist_epoch_{epoch}_karakara.png')
     plt.close()
 
 

@@ -136,4 +136,5 @@ gan_images/*
 *.h8
 data/*
 history_images/*
-datasets/*.npz
+datasets/*
+yolo/result/*

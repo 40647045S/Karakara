@@ -48,52 +48,75 @@ class CategoricalCrossEntropy(BaseLossLayer):
 
 class MeanSquareError(BaseLossLayer):
 
-    def __init__(self, epsilon=epsilon()):
+    def __init__(self, epsilon=epsilon(), reduction='mean'):
         super().__init__()
         self.pred = None
         self.label = None
         self.loss = None
         self.output_shape = None
+        self.reduction = reduction
 
     def call(self, inputs, labels, **kwargs):
+        if inputs.ndim == 1:
+            inputs = inputs.reshape(-1, 1)
         self.pred = inputs
-        self.label = labels.reshape(-1, 1)
+        if labels.ndim == 1:
+            labels = labels.reshape(-1, 1)
+        self.label = labels
         batch_size = self.label.shape[0]
         self.loss = np.square(self.pred - self.label) / 2
 
-        return np.sum(self.loss) / batch_size
+        loss = np.sum(self.loss)
+        if self.reduction == 'mean':
+            loss /= batch_size
+
+        return loss
 
     def backward(self, dout=1):
         batch_size = self.label.shape[0]
-        dx = (self.pred - self.label) / batch_size
+        dx = (self.pred - self.label)
+
+        if self.reduction == 'mean':
+            dx /= batch_size
 
         return dx
 
 
 class BinaryCrossEntropy(BaseLossLayer):
 
-    def __init__(self, epsilon=epsilon()):
+    def __init__(self, epsilon=epsilon(), reduction='mean'):
         super().__init__()
         self.pred = None
         self.epsilon = epsilon
         self.label = None
         self.loss = None
         self.output_shape = None
+        self.reduction = reduction
 
     def call(self, inputs, labels, **kwargs):
+        if inputs.ndim == 1:
+            inputs = inputs.reshape(-1, 1)
         self.pred = inputs
-        self.label = labels.reshape(-1, 1)
+        if labels.ndim == 1:
+            labels = labels.reshape(-1, 1)
+        self.label = labels
         batch_size = self.label.shape[0]
         self.loss = -(self.label * np.log(self.pred) +
                       (1 - self.label) * np.log(1 - self.pred + self.epsilon))
 
-        return np.sum(self.loss) / batch_size
+        loss = np.sum(self.loss)
+        if self.reduction == 'mean':
+            loss /= batch_size
+
+        return loss
 
     def backward(self, dout=1):
         batch_size = self.label.shape[0]
         dx = - (np.divide(self.label, self.pred + self.epsilon) -
                 np.divide(1 - self.label, 1 - self.pred + self.epsilon))
-        dx = dx / batch_size
+
+        if self.reduction == 'mean':
+            dx = dx / batch_size
 
         return dx
 

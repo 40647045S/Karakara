@@ -31,6 +31,25 @@ class Sigmoid(BaseActivation):
         return dx
 
 
+class MaskedSigmoid(BaseActivation):
+    def __init__(self, mask):
+        super().__init__()
+        self.out = None
+        self.mask = mask
+
+    def call(self, x, **kwargs):
+        out = x
+        out[:, self.mask] = 1 / (1 + np.exp(-x[:, self.mask]))
+        self.out = out
+        return out
+
+    def backward(self, dout):
+        dx = dout
+        dx[:, self.mask] = dout[:, self.mask] * (1.0 - self.out[:, self.mask]) * self.out[:, self.mask]
+
+        return dx
+
+
 class Tanh(BaseActivation):
     def __init__(self):
         super().__init__()

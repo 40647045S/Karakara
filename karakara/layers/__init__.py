@@ -2,6 +2,8 @@ from .core import Input
 from .core import Dense
 from .core import Dropout
 from .core import Flatten
+from .core import Reshape
+from .core import Transpose
 from .merge import Add
 from .merge import Separate
 from .merge import Same

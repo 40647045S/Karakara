@@ -57,6 +57,8 @@ def main():
     print()
     print(f'Test loss: {test_loss}, test acc: {test_acc}')
 
+    plot_history(history, 'his.jpg')
+
 
 if __name__ == '__main__':
     main()
