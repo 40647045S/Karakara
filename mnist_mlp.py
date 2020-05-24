@@ -45,8 +45,12 @@ def make_model():
 def main():
     (X_train, y_train), (X_valid, y_valid), (X_test,
                                              y_test) = make_mnist_data()
-    print(X_train.shape)
-    print(X_test.shape)
+    print(f'X_train: {X_train.shape}')
+    print(f'X_valid: {X_valid.shape}')
+    print(f'X_test  : {X_test.shape}')
+    print(f'y_train: {y_train.shape}')
+    print(f'y_valid: {y_valid.shape}')
+    print(f'y_test: {y_test.shape}')
 
     model = make_model()
 

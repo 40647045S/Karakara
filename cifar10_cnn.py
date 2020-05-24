@@ -71,6 +71,9 @@ def main():
     print(f'X_train: {X_train.shape}')
     print(f'X_valid: {X_valid.shape}')
     print(f'X_test  : {X_test.shape}')
+    print(f'y_train: {y_train.shape}')
+    print(f'y_valid: {y_valid.shape}')
+    print(f'y_test: {y_test.shape}')
 
     model = make_model()
 

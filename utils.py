@@ -78,8 +78,8 @@ def make_cifar10_data(valid_ratio=0.2):
     X_train /= 255
     X_test /= 255
 
-    y_train = to_categorical(y_train, 10)
-    y_test = to_categorical(y_test, 10)
+    y_train = to_categorical(y_train.reshape(-1), 10)
+    y_test = to_categorical(y_test.reshape(-1), 10)
 
     if valid_ratio > 0:
         X_train, X_valid, y_train, y_valid = train_test_split(
