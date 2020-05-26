@@ -10,6 +10,7 @@ import karakara.backend as K
 K.set_random_seed(1988)
 # K.set_floatx('float16')
 # K.set_epsilon(1e-4)
+
 from karakara.models import Sequential
 from karakara.layers import Dense, Dropout
 from karakara.activations import Sigmoid, ReLU, LeakyReLU, Tanh
