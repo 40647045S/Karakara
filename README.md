@@ -26,11 +26,12 @@ A neural network library
 * 特殊功能
   * -[x] GPU支援
   * -[x] 半精度浮點數支援
+  * -[x] 儲存model
   * -[ ] 多GPU支援
-  * -[ ] 儲存模型
 
 ## 使用範例
 mnist_mlp.py : Mnist手寫數字分類  
 mnist_deep_gan.py : 基於Deep GAN的Mnist手寫數字生成  
 cifar10_cnn.py : 使用CNN的Cifar10分類  
 cifar10_resnet_v2.py：使用ResNet v2的Cifar10分類  
+yolo：You Look Only Once（測試中）
